@@ -130,31 +130,12 @@ jobs:
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
 
-      - name: Verify build output
-        run: |
-          echo "=== Build directory contents ==="
-          ls -la dashboard/.evidence/template/build/ 2>&1 || echo "ERROR: directory not found"
-          echo "=== Evidence template contents ==="
-          ls dashboard/.evidence/template/ 2>&1
-
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project list
-
-      - name: Create Cloudflare Pages project if missing
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create qargo-dashboard --production-branch main
-        continue-on-error: true
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard --commit-dirty=true
+          wranglerVersion: "3.114.0"
+          command: pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard
+        env:
+          WRANGLER_LOG: debug
