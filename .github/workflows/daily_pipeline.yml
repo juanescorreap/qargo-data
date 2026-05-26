@@ -109,11 +109,7 @@ jobs:
           config = {
               'name': 'qargo',
               'type': 'postgres',
-              'host': os.environ['SUPABASE_HOST'],
-              'port': int(os.environ['SUPABASE_PORT']),
-              'database': os.environ['SUPABASE_DBNAME'],
-              'user': os.environ['SUPABASE_USER'],
-              'password': os.environ['SUPABASE_PASSWORD'],
+              'connectionString': os.environ['SUPABASE_DB_URL'],
               'ssl': True,
           }
           dest = pathlib.Path('dashboard/sources/qargo/connection.yaml')
@@ -121,6 +117,8 @@ jobs:
           dest.write_text(yaml.dump(config, default_flow_style=False, allow_unicode=True))
           print("connection.yaml written OK")
           PYEOF
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       - name: Generate Evidence sources
         run: npm run sources --prefix dashboard
