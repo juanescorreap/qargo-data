@@ -27,8 +27,35 @@ jobs:
 
       - name: Create dbt profiles.yml
         run: |
-          mkdir -p ~/.dbt
-          echo "${{ secrets.DBT_PROFILES_CONTENT }}" > ~/.dbt/profiles.yml
+          python3 - << 'PYEOF'
+          import os, urllib.parse, pathlib
+          url = urllib.parse.urlparse(os.environ['SUPABASE_DB_URL'])
+          password = urllib.parse.unquote(url.password)
+          content = (
+              "qargo:\n"
+              "  target: dev\n"
+              "  outputs:\n"
+              "    dev:\n"
+              "      type: postgres\n"
+              f"      host: {url.hostname}\n"
+              f"      port: {url.port or 6543}\n"
+              f"      dbname: {url.path.lstrip('/')}\n"
+              f"      user: {url.username}\n"
+              f"      password: \"{password}\"\n"
+              "      schema: bronze\n"
+              "      threads: 4\n"
+              "      connect_timeout: 10\n"
+              "      sslmode: require\n"
+              "      options: \"-c statement_timeout=30000\"\n"
+              "      prepare_threshold: 0\n"
+          )
+          dbt_dir = pathlib.Path.home() / '.dbt'
+          dbt_dir.mkdir(exist_ok=True)
+          (dbt_dir / 'profiles.yml').write_text(content)
+          print("profiles.yml created OK")
+          PYEOF
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       # Parse SUPABASE_DB_URL into individual vars needed by Evidence connection.yaml
       - name: Export Supabase connection vars
