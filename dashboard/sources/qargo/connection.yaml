@@ -6,4 +6,5 @@ options:
   database: ${SUPABASE_DBNAME}
   user: ${SUPABASE_USER}
   password: ${SUPABASE_PASSWORD}
-  ssl: true
+  ssl:
+    rejectUnauthorized: false

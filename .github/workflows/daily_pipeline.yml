@@ -115,7 +115,7 @@ jobs:
                   'database': os.environ['SUPABASE_DBNAME'],
                   'user': os.environ['SUPABASE_USER'],
                   'password': os.environ['SUPABASE_PASSWORD'],
-                  'ssl': True,
+                  'ssl': {'rejectUnauthorized': False},
               },
           }
           dest = pathlib.Path('dashboard/sources/qargo/connection.yaml')
