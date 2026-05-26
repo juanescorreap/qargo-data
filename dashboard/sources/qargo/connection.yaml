@@ -1,4 +1,8 @@
 name: qargo
 type: postgres
-connectionString: ${SUPABASE_DB_URL}
+host: ${SUPABASE_HOST}
+port: ${SUPABASE_PORT}
+database: ${SUPABASE_DBNAME}
+user: ${SUPABASE_USER}
+password: ${SUPABASE_PASSWORD}
 ssl: true
