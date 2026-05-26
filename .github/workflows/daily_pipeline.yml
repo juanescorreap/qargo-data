@@ -131,11 +131,7 @@ jobs:
         run: npm run build --prefix dashboard
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3.114.0"
-          command: pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard
+        run: npx wrangler@3.112.0 pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard 2>&1
         env:
-          WRANGLER_LOG: debug
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
