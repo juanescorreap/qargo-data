@@ -130,8 +130,8 @@ jobs:
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
 
-      - name: Deploy to Cloudflare Pages
-        run: npx wrangler@3.112.0 pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard 2>&1
+      - name: Deploy to Vercel
+        run: npx vercel@latest deploy dashboard/.evidence/template/build --prod --yes --token=${{ secrets.VERCEL_TOKEN }} 2>&1
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
