@@ -19,6 +19,7 @@ where date_trunc('month', d.date) = (
 ```sql stores_this_month
 select
     s.store_name,
+    '/stores/' || s.store_name as store_url,
     sum(f.net_sales) as net_sales
 from gold.fact_sales f
 join gold.dim_date  d on f.date_key  = d.date_key
@@ -70,7 +71,7 @@ order by d.date
     sort=true
 />
 
-<DataTable data={stores_this_month} link=/stores/{store_name} />
+<DataTable data={stores_this_month} link=store_url />
 
 ## Daily Network Sales — Last 30 Days
 
