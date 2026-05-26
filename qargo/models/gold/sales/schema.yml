@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: fact_sales
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: net_sales
+        tests:
+          - not_null
+          - is_non_negative
+      - name: order_count
+        tests:
+          - not_null

@@ -1,0 +1,4 @@
+name: qargo
+type: postgres
+connectionString: ${SUPABASE_DB_URL}
+ssl: true

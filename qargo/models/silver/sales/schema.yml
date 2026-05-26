@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_par2
+    columns:
+      - name: sale_date
+        tests:
+          - not_null
+      - name: store_name
+        tests:
+          - not_null
+      - name: revenue_center
+        tests:
+          - not_null
+      - name: net_sales
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: stg_ls2
+    columns:
+      - name: sale_date
+        tests:
+          - not_null
+      - name: store_name
+        tests:
+          - not_null
+      - name: revenue_center
+        tests:
+          - not_null
+      - name: net_sales
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null

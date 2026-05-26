@@ -1,0 +1,83 @@
+name: Daily Pipeline
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # 8 AM UTC = 3 AM EST
+  workflow_dispatch:        # manual trigger button in GitHub UI
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          echo "${{ secrets.DBT_PROFILES_CONTENT }}" > ~/.dbt/profiles.yml
+
+      # Parse SUPABASE_DB_URL into individual vars needed by Evidence connection.yaml
+      - name: Export Supabase connection vars
+        run: |
+          python3 << 'PYEOF'
+          import os, urllib.parse
+          url = urllib.parse.urlparse(os.environ['SUPABASE_DB_URL'])
+          password = urllib.parse.unquote(url.password)
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              for key, val in [
+                  ('SUPABASE_HOST',    url.hostname),
+                  ('SUPABASE_PORT',    str(url.port)),
+                  ('SUPABASE_DBNAME',  url.path.lstrip('/')),
+                  ('SUPABASE_USER',    url.username),
+                  ('SUPABASE_PASSWORD', password),
+              ]:
+                  f.write(f'{key}<<GHEOF\n{val}\nGHEOF\n')
+          PYEOF
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: Load new data into Supabase
+        run: |
+          par_count=$(ls data/DDBB_*.csv 2>/dev/null | wc -l)
+          ls_count=$(ls data/qargocoffee-hqaccount_*_transactions_*.csv 2>/dev/null | wc -l)
+          if [ "$par_count" -gt 0 ] || [ "$ls_count" -gt 0 ]; then
+            echo "Found $par_count PAR file(s) and $ls_count LS file(s). Running ingestion."
+            python ingestion/run.py
+          else
+            echo "No data files found in data/ — skipping ingestion."
+          fi
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: dbt run
+        run: dbt run --project-dir qargo --profiles-dir ~/.dbt
+
+      - name: dbt test
+        run: dbt test --project-dir qargo --profiles-dir ~/.dbt
+
+      - name: Install Evidence dependencies
+        run: npm ci --prefix dashboard
+
+      - name: Build Evidence dashboard
+        run: npm run build --prefix dashboard
+        # SUPABASE_* vars are available here from the export step above
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: dashboard
+          vercel-args: '--prod'
