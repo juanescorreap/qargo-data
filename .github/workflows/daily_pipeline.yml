@@ -102,15 +102,31 @@ jobs:
       - name: Install Evidence dependencies
         run: npm ci --prefix dashboard
 
+      - name: Create Evidence connection.yaml
+        run: |
+          python3 - << 'PYEOF'
+          import os, pathlib, yaml
+          config = {
+              'name': 'qargo',
+              'type': 'postgres',
+              'host': os.environ['SUPABASE_HOST'],
+              'port': int(os.environ['SUPABASE_PORT']),
+              'database': os.environ['SUPABASE_DBNAME'],
+              'user': os.environ['SUPABASE_USER'],
+              'password': os.environ['SUPABASE_PASSWORD'],
+              'ssl': True,
+          }
+          dest = pathlib.Path('dashboard/sources/qargo/connection.yaml')
+          dest.parent.mkdir(parents=True, exist_ok=True)
+          dest.write_text(yaml.dump(config, default_flow_style=False, allow_unicode=True))
+          print("connection.yaml written OK")
+          PYEOF
+
       - name: Generate Evidence sources
         run: npm run sources --prefix dashboard
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
