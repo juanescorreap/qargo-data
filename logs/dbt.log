@@ -1,0 +1,282 @@
+[0m08:47:55.194573 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e167481b710>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e1674490770>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e167584bef0>]}
+
+
+============================== 08:47:55.198979 | 7c5d3464-82d4-4afb-8eed-f2b706137669 ==============================
+[0m08:47:55.198979 [info ] [MainThread]: Running with dbt=1.11.9
+[0m08:47:55.199383 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'log_format': 'default', 'log_path': 'logs', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'warn_error': 'None', 'invocation_command': 'dbt init dbt', 'target_path': 'None', 'write_json': 'True', 'fail_fast': 'False', 'cache_selected_only': 'False', 'debug': 'False', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'use_colors': 'True', 'introspect': 'True', 'partial_parse': 'True', 'log_cache_events': 'False', 'empty': 'None', 'no_print': 'None', 'quiet': 'False', 'printer_width': '80', 'indirect_selection': 'eager', 'static_parser': 'True', 'use_experimental_parser': 'False', 'send_anonymous_usage_stats': 'True'}
+[0m08:47:55.212705 [info ] [MainThread]: Creating dbt configuration folder at /home/juan_esteban_correa/.dbt
+[0m08:48:14.581528 [debug] [MainThread]: Starter project path: /home/juan_esteban_correa/qargo-data/.venv/lib/python3.12/site-packages/dbt/include/starter_project
+[0m08:48:14.586820 [info ] [MainThread]: 
+Your new dbt project "qargo" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m08:48:14.587255 [info ] [MainThread]: Setting up your profile.
+[0m08:48:24.048508 [info ] [MainThread]: Profile qargo written to /home/juan_esteban_correa/.dbt/profiles.yml using target's sample configuration. Once updated, you'll be able to start developing with dbt.
+[0m08:48:24.049876 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 28.897364, "process_in_blocks": "143984", "process_kernel_time": 0.285251, "process_mem_max_rss": "134144", "process_out_blocks": "88", "process_user_time": 1.030073}
+[0m08:48:24.050183 [debug] [MainThread]: Command `dbt init` succeeded at 08:48:24.050122 after 28.90 seconds
+[0m08:48:24.050424 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e1676a334d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e16758dbf80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e1673a4ecf0>]}
+[0m08:48:24.050677 [debug] [MainThread]: Flushing usage events
+[0m08:48:24.441480 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m08:49:05.016202 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7634032659a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x76340422f200>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x763405116ae0>]}
+
+
+============================== 08:49:05.018702 | 615b672a-2a1c-4ad6-aaf7-ccf38eaee914 ==============================
+[0m08:49:05.018702 [info ] [MainThread]: Running with dbt=1.11.9
+[0m08:49:05.019102 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'version_check': 'True', 'partial_parse': 'True', 'quiet': 'False', 'write_json': 'True', 'target_path': 'None', 'use_experimental_parser': 'False', 'log_path': 'logs', 'log_format': 'default', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'introspect': 'True', 'fail_fast': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'warn_error': 'None', 'send_anonymous_usage_stats': 'True', 'log_cache_events': 'False', 'no_print': 'None', 'use_colors': 'True', 'debug': 'False', 'indirect_selection': 'eager', 'cache_selected_only': 'False', 'empty': 'None', 'invocation_command': 'dbt debug'}
+[0m08:49:05.025635 [info ] [MainThread]: dbt version: 1.11.9
+[0m08:49:05.025972 [info ] [MainThread]: python version: 3.12.13
+[0m08:49:05.026196 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m08:49:05.026386 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m08:49:05.105860 [info ] [MainThread]: Using profiles dir at /home/juan_esteban_correa/.dbt
+[0m08:49:05.106216 [info ] [MainThread]: Using profiles.yml file at /home/juan_esteban_correa/.dbt/profiles.yml
+[0m08:49:05.106444 [info ] [MainThread]: Using dbt_project.yml file at /home/juan_esteban_correa/qargo-data/dbt_project.yml
+[0m08:49:05.108297 [info ] [MainThread]: adapter type: duckdb
+[0m08:49:05.108558 [info ] [MainThread]: adapter version: 1.10.1
+[0m08:49:05.108780 [info ] [MainThread]: Configuration:
+[0m08:49:05.108960 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m08:49:05.109146 [info ] [MainThread]:   dbt_project.yml file [[31mERROR not found[0m]
+[0m08:49:05.109300 [info ] [MainThread]: Required dependencies:
+[0m08:49:05.109469 [debug] [MainThread]: Executing "git --help"
+[0m08:49:05.119951 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Set `HEAD` or the index to a known state\n   switch     Switch branches\n   tag        Create, list, delete or verify tags\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m08:49:05.120355 [debug] [MainThread]: STDERR: "b''"
+[0m08:49:05.120555 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m08:49:05.120809 [info ] [MainThread]: Connection:
+[0m08:49:05.121031 [info ] [MainThread]:   database: qargo
+[0m08:49:05.121216 [info ] [MainThread]:   schema: main
+[0m08:49:05.121408 [info ] [MainThread]:   path: /home/juan/qargo-data/data/qargo.duckdb
+[0m08:49:05.121575 [info ] [MainThread]:   config_options: None
+[0m08:49:05.121730 [info ] [MainThread]:   extensions: None
+[0m08:49:05.121885 [info ] [MainThread]:   settings: {}
+[0m08:49:05.122039 [info ] [MainThread]:   external_root: .
+[0m08:49:05.122189 [info ] [MainThread]:   use_credential_provider: None
+[0m08:49:05.122344 [info ] [MainThread]:   attach: None
+[0m08:49:05.122499 [info ] [MainThread]:   filesystems: None
+[0m08:49:05.122647 [info ] [MainThread]:   remote: None
+[0m08:49:05.122817 [info ] [MainThread]:   plugins: None
+[0m08:49:05.122982 [info ] [MainThread]:   disable_transactions: False
+[0m08:49:05.123325 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m08:49:05.165798 [debug] [MainThread]: Acquiring new duckdb connection 'debug'
+[0m08:49:05.186436 [debug] [MainThread]: Using duckdb connection "debug"
+[0m08:49:05.186734 [debug] [MainThread]: On debug: select 1 as id
+[0m08:49:05.186915 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m08:49:05.203117 [debug] [MainThread]: DuckDB adapter: duckdb error: IO Error: Cannot open file "/home/juan/qargo-data/data/qargo.duckdb": No such file or directory
+[0m08:49:05.203437 [debug] [MainThread]: DuckDB adapter: Error running SQL: select 1 as id
+[0m08:49:05.203606 [debug] [MainThread]: DuckDB adapter: Rolling back transaction.
+[0m08:49:05.203762 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m08:49:05.207135 [info ] [MainThread]:   Connection test: [[31mERROR[0m]
+
+[0m08:49:05.207574 [info ] [MainThread]: [31m2 checks failed:[0m
+[0m08:49:05.207816 [info ] [MainThread]: Project loading failed for the following reason:
+ project path </home/juan_esteban_correa/qargo-data/dbt_project.yml> not found
+
+[0m08:49:05.208050 [info ] [MainThread]: dbt was unable to connect to the specified database.
+The database returned the following error:
+
+  >IO Error: Cannot open file "/home/juan/qargo-data/data/qargo.duckdb": No such file or directory
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m08:49:05.208735 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.23576239, "process_in_blocks": "8024", "process_kernel_time": 0.159688, "process_mem_max_rss": "143972", "process_out_blocks": "32", "process_user_time": 1.065918}
+[0m08:49:05.209070 [debug] [MainThread]: Command `dbt debug` failed at 08:49:05.209000 after 0.24 seconds
+[0m08:49:05.209276 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m08:49:05.209467 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x763403b55430>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x763403ffc8c0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7633f6f70800>]}
+[0m08:49:05.209702 [debug] [MainThread]: Flushing usage events
+[0m08:49:05.608639 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m18:21:42.868425 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cad0f1d00>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cacab4fe0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cac71c680>]}
+
+
+============================== 18:21:42.871620 | 787f241b-df0b-433f-896c-6a7dc69e8464 ==============================
+[0m18:21:42.871620 [info ] [MainThread]: Running with dbt=1.11.9
+[0m18:21:42.872008 [debug] [MainThread]: running dbt with arguments {'profiles_dir': '/home/juan_esteban_correa/.dbt', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'target_path': 'None', 'use_colors': 'True', 'invocation_command': 'dbt debug', 'empty': 'None', 'quiet': 'False', 'log_cache_events': 'False', 'static_parser': 'True', 'printer_width': '80', 'fail_fast': 'False', 'log_format': 'default', 'indirect_selection': 'eager', 'version_check': 'True', 'debug': 'False', 'warn_error': 'None', 'no_print': 'None', 'use_experimental_parser': 'False', 'write_json': 'True', 'cache_selected_only': 'False', 'log_path': 'logs', 'introspect': 'True'}
+[0m18:21:42.887952 [info ] [MainThread]: dbt version: 1.11.9
+[0m18:21:42.888329 [info ] [MainThread]: python version: 3.12.13
+[0m18:21:42.888639 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m18:21:42.888859 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m18:21:42.894055 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m18:21:42.895630 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.07163731, "process_in_blocks": "52696", "process_kernel_time": 0.17786, "process_mem_max_rss": "104120", "process_out_blocks": "16", "process_user_time": 1.034826}
+[0m18:21:42.896080 [debug] [MainThread]: Command `dbt debug` failed at 18:21:42.895997 after 0.07 seconds
+[0m18:21:42.896352 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cac556ff0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cabdd5d90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x730cac2802c0>]}
+[0m18:21:42.896693 [debug] [MainThread]: Flushing usage events
+[0m18:21:43.533696 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:20:40.366922 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdb38e330>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdb38e480>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdb38e3c0>]}
+
+
+============================== 21:20:40.369954 | f46be6bc-8e3c-498b-bf1d-492910c430a7 ==============================
+[0m21:20:40.369954 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:20:40.370412 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'no_print': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'log_path': 'logs', 'use_experimental_parser': 'False', 'debug': 'False', 'write_json': 'True', 'log_cache_events': 'False', 'empty': 'None', 'cache_selected_only': 'False', 'partial_parse': 'True', 'printer_width': '80', 'target_path': 'None', 'introspect': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt debug', 'warn_error': 'None', 'version_check': 'True', 'use_colors': 'True', 'quiet': 'False', 'fail_fast': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])'}
+[0m21:20:40.376463 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:20:40.376781 [info ] [MainThread]: python version: 3.12.13
+[0m21:20:40.377139 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:20:40.377583 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:20:40.382057 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m21:20:40.382870 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.0619304, "process_in_blocks": "24", "process_kernel_time": 0.108028, "process_mem_max_rss": "104580", "process_out_blocks": "8", "process_user_time": 1.012267}
+[0m21:20:40.383671 [debug] [MainThread]: Command `dbt debug` failed at 21:20:40.383515 after 0.06 seconds
+[0m21:20:40.383967 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdaf9e0c0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdabe1d90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e2fdaab9490>]}
+[0m21:20:40.384490 [debug] [MainThread]: Flushing usage events
+[0m21:20:40.972230 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:21:14.555011 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0d9578f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0f95ac60>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0d4aa030>]}
+
+
+============================== 21:21:14.557579 | 68ceef3d-5476-45af-99d8-03eb3b16db7b ==============================
+[0m21:21:14.557579 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:21:14.558041 [debug] [MainThread]: running dbt with arguments {'fail_fast': 'False', 'write_json': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'printer_width': '80', 'static_parser': 'True', 'log_format': 'default', 'empty': 'None', 'indirect_selection': 'eager', 'target_path': 'None', 'introspect': 'True', 'log_cache_events': 'False', 'warn_error': 'None', 'debug': 'False', 'version_check': 'True', 'invocation_command': 'dbt debug', 'use_experimental_parser': 'False', 'use_colors': 'True', 'cache_selected_only': 'False', 'partial_parse': 'True', 'no_print': 'None', 'log_path': 'logs', 'send_anonymous_usage_stats': 'True'}
+[0m21:21:14.564001 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:21:14.564333 [info ] [MainThread]: python version: 3.12.13
+[0m21:21:14.564581 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:21:14.564818 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:21:14.567777 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m21:21:14.568690 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.060705896, "process_in_blocks": "0", "process_kernel_time": 0.20733, "process_mem_max_rss": "104344", "process_out_blocks": "8", "process_user_time": 1.060574}
+[0m21:21:14.569037 [debug] [MainThread]: Command `dbt debug` failed at 21:21:14.568961 after 0.06 seconds
+[0m21:21:14.569305 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0cefe360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0cae9e80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x731b0c98b680>]}
+[0m21:21:14.569601 [debug] [MainThread]: Flushing usage events
+[0m21:21:15.074770 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:24:17.165882 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fc93e660>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fcd210a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fc10e390>]}
+
+
+============================== 21:24:17.169139 | 3b6a0bc5-04c6-4475-bea0-d90a2be80c82 ==============================
+[0m21:24:17.169139 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:24:17.169918 [debug] [MainThread]: running dbt with arguments {'indirect_selection': 'eager', 'version_check': 'True', 'partial_parse': 'True', 'introspect': 'True', 'static_parser': 'True', 'invocation_command': 'dbt debug', 'log_format': 'default', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'warn_error': 'None', 'send_anonymous_usage_stats': 'True', 'use_colors': 'True', 'target_path': 'None', 'log_cache_events': 'False', 'empty': 'None', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'printer_width': '80', 'log_path': 'logs', 'fail_fast': 'False', 'cache_selected_only': 'False', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'write_json': 'True', 'debug': 'False'}
+[0m21:24:17.176463 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:24:17.176767 [info ] [MainThread]: python version: 3.12.13
+[0m21:24:17.177023 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:24:17.177205 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:24:17.180403 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m21:24:17.181497 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.061690256, "process_in_blocks": "0", "process_kernel_time": 0.104555, "process_mem_max_rss": "104448", "process_out_blocks": "16", "process_user_time": 1.097837}
+[0m21:24:17.181887 [debug] [MainThread]: Command `dbt debug` failed at 21:24:17.181806 after 0.06 seconds
+[0m21:24:17.182151 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fc7ff3b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fc0acb30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x77f2fbe7b2c0>]}
+[0m21:24:17.182436 [debug] [MainThread]: Flushing usage events
+[0m21:24:17.684986 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:24:47.191256 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74597a5fa150>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x745979fafec0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74597a386f00>]}
+
+
+============================== 21:24:47.193869 | d3de6cb6-aa98-42fa-b4b9-6c4df0a08001 ==============================
+[0m21:24:47.193869 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:24:47.194297 [debug] [MainThread]: running dbt with arguments {'target_path': 'None', 'indirect_selection': 'eager', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'write_json': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'partial_parse': 'True', 'static_parser': 'True', 'introspect': 'True', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'use_colors': 'True', 'empty': 'None', 'use_experimental_parser': 'False', 'no_print': 'None', 'debug': 'False', 'version_check': 'True', 'warn_error': 'None', 'printer_width': '80', 'quiet': 'False', 'fail_fast': 'False', 'invocation_command': 'dbt debug', 'log_cache_events': 'False', 'log_path': 'logs', 'cache_selected_only': 'False'}
+[0m21:24:47.200436 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:24:47.200950 [info ] [MainThread]: python version: 3.12.13
+[0m21:24:47.201636 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:24:47.202026 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:24:47.206083 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m21:24:47.207125 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.061610553, "process_in_blocks": "0", "process_kernel_time": 0.155713, "process_mem_max_rss": "104692", "process_out_blocks": "0", "process_user_time": 1.030106}
+[0m21:24:47.207483 [debug] [MainThread]: Command `dbt debug` failed at 21:24:47.207404 after 0.06 seconds
+[0m21:24:47.207747 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7459797a1d60>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x745979625010>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x745979569e80>]}
+[0m21:24:47.208042 [debug] [MainThread]: Flushing usage events
+[0m21:24:47.590281 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:25:47.489862 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c43b19640>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c433bc6b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c43a3c140>]}
+
+
+============================== 21:25:47.492748 | ad747a14-9141-474b-85a6-e9d342ea865b ==============================
+[0m21:25:47.492748 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:25:47.493205 [debug] [MainThread]: running dbt with arguments {'log_path': 'logs', 'quiet': 'False', 'empty': 'None', 'cache_selected_only': 'False', 'partial_parse': 'True', 'printer_width': '80', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'log_format': 'default', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'send_anonymous_usage_stats': 'True', 'version_check': 'True', 'fail_fast': 'False', 'invocation_command': 'dbt debug', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'debug': 'False', 'introspect': 'True', 'warn_error': 'None', 'write_json': 'True', 'log_cache_events': 'False', 'static_parser': 'True', 'target_path': 'None', 'use_colors': 'True'}
+[0m21:25:47.499981 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:25:47.500656 [info ] [MainThread]: python version: 3.12.13
+[0m21:25:47.501258 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:25:47.501535 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:25:47.505358 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'SUPABASE_HOST'
+[0m21:25:47.506212 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.0645001, "process_in_blocks": "0", "process_kernel_time": 0.107997, "process_mem_max_rss": "104628", "process_out_blocks": "8", "process_user_time": 1.031971}
+[0m21:25:47.506612 [debug] [MainThread]: Command `dbt debug` failed at 21:25:47.506519 after 0.07 seconds
+[0m21:25:47.506916 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c43b19640>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c4523e2a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7c8c42a72420>]}
+[0m21:25:47.507230 [debug] [MainThread]: Flushing usage events
+[0m21:25:48.060186 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:25:58.290478 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b62fd6b500>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b62fd8e570>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b62fd6ad20>]}
+
+
+============================== 21:25:58.293519 | 8ac6a750-dd11-47ac-ae19-d7a078e4722e ==============================
+[0m21:25:58.293519 [info ] [MainThread]: Running with dbt=1.11.9
+[0m21:25:58.293978 [debug] [MainThread]: running dbt with arguments {'use_colors': 'True', 'partial_parse': 'True', 'introspect': 'True', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'log_path': 'logs', 'target_path': 'None', 'version_check': 'True', 'quiet': 'False', 'log_format': 'default', 'no_print': 'None', 'printer_width': '80', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'empty': 'None', 'static_parser': 'True', 'warn_error': 'None', 'use_experimental_parser': 'False', 'cache_selected_only': 'False', 'send_anonymous_usage_stats': 'True', 'log_cache_events': 'False', 'invocation_command': 'dbt debug', 'fail_fast': 'False', 'write_json': 'True', 'indirect_selection': 'eager', 'debug': 'False'}
+[0m21:25:58.300124 [info ] [MainThread]: dbt version: 1.11.9
+[0m21:25:58.300499 [info ] [MainThread]: python version: 3.12.13
+[0m21:25:58.300744 [info ] [MainThread]: python path: /home/juan_esteban_correa/qargo-data/.venv/bin/python3.12
+[0m21:25:58.301049 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+[0m21:25:58.342927 [info ] [MainThread]: Using profiles dir at /home/juan_esteban_correa/.dbt
+[0m21:25:58.343488 [info ] [MainThread]: Using profiles.yml file at /home/juan_esteban_correa/.dbt/profiles.yml
+[0m21:25:58.343741 [info ] [MainThread]: Using dbt_project.yml file at /home/juan_esteban_correa/qargo-data/dbt_project.yml
+[0m21:25:58.344124 [info ] [MainThread]: adapter type: postgres
+[0m21:25:58.344384 [info ] [MainThread]: adapter version: 1.10.0
+[0m21:25:58.344628 [info ] [MainThread]: Configuration:
+[0m21:25:58.344867 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m21:25:58.345071 [info ] [MainThread]:   dbt_project.yml file [[31mERROR not found[0m]
+[0m21:25:58.345287 [info ] [MainThread]: Required dependencies:
+[0m21:25:58.345515 [debug] [MainThread]: Executing "git --help"
+[0m21:25:58.347097 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Set `HEAD` or the index to a known state\n   switch     Switch branches\n   tag        Create, list, delete or verify tags\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m21:25:58.347418 [debug] [MainThread]: STDERR: "b''"
+[0m21:25:58.347624 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m21:25:58.347848 [info ] [MainThread]: Connection:
+[0m21:25:58.348061 [info ] [MainThread]:   host: aws-1-us-east-1.pooler.supabase.com
+[0m21:25:58.348282 [info ] [MainThread]:   port: 6543
+[0m21:25:58.348481 [info ] [MainThread]:   user: postgres.yloswikrxttrpihfossl
+[0m21:25:58.348676 [info ] [MainThread]:   database: postgres
+[0m21:25:58.348872 [info ] [MainThread]:   schema: bronze
+[0m21:25:58.349059 [info ] [MainThread]:   connect_timeout: 10
+[0m21:25:58.349245 [info ] [MainThread]:   role: None
+[0m21:25:58.349424 [info ] [MainThread]:   search_path: None
+[0m21:25:58.349607 [info ] [MainThread]:   keepalives_idle: 0
+[0m21:25:58.349850 [info ] [MainThread]:   sslmode: require
+[0m21:25:58.350034 [info ] [MainThread]:   sslcert: None
+[0m21:25:58.350217 [info ] [MainThread]:   sslkey: None
+[0m21:25:58.350396 [info ] [MainThread]:   sslrootcert: None
+[0m21:25:58.350583 [info ] [MainThread]:   application_name: dbt
+[0m21:25:58.350772 [info ] [MainThread]:   retries: 1
+[0m21:25:58.351273 [info ] [MainThread]: Registered adapter: postgres=1.10.0
+[0m21:25:58.390984 [debug] [MainThread]: Acquiring new postgres connection 'debug'
+[0m21:25:58.410928 [debug] [MainThread]: Using postgres connection "debug"
+[0m21:25:58.411260 [debug] [MainThread]: On debug: select 1 as id
+[0m21:25:58.411514 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m21:25:59.423627 [debug] [MainThread]: SQL status: SELECT 1 in 1.012 seconds
+[0m21:25:59.424531 [debug] [MainThread]: On debug: Close
+[0m21:25:59.424914 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m21:25:59.425202 [info ] [MainThread]: [31m1 check failed:[0m
+[0m21:25:59.425387 [info ] [MainThread]: Project loading failed for the following reason:
+ project path </home/juan_esteban_correa/qargo-data/dbt_project.yml> not found
+
+[0m21:25:59.426012 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 1.1794424, "process_in_blocks": "0", "process_kernel_time": 0.128555, "process_mem_max_rss": "119440", "process_out_blocks": "16", "process_user_time": 1.131821}
+[0m21:25:59.426382 [debug] [MainThread]: Command `dbt debug` failed at 21:25:59.426299 after 1.18 seconds
+[0m21:25:59.426660 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m21:25:59.427014 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b62fcf0a70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b63052a240>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74b62facf710>]}
+[0m21:25:59.427330 [debug] [MainThread]: Flushing usage events
+[0m21:25:59.872513 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m10:07:47.324971 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884db356a20>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884d862e1b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884d8d67230>]}
+
+
+============================== 10:07:47.329247 | c1e0b027-3021-4c2f-b213-95fcaed87251 ==============================
+[0m10:07:47.329247 [info ] [MainThread]: Running with dbt=1.11.9
+[0m10:07:47.329733 [debug] [MainThread]: running dbt with arguments {'cache_selected_only': 'False', 'profiles_dir': '/home/juan_esteban_correa/.dbt', 'version_check': 'True', 'send_anonymous_usage_stats': 'True', 'log_path': 'logs', 'fail_fast': 'False', 'invocation_command': 'dbt run', 'use_colors': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'log_format': 'default', 'log_cache_events': 'False', 'partial_parse': 'True', 'empty': 'False', 'use_experimental_parser': 'False', 'target_path': 'None', 'write_json': 'True', 'debug': 'False', 'no_print': 'None', 'static_parser': 'True', 'indirect_selection': 'eager', 'printer_width': '80', 'warn_error': 'None', 'quiet': 'False', 'introspect': 'True'}
+[0m10:07:47.330236 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path /home/juan_esteban_correa/qargo-data/dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m10:07:47.331792 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": false, "command_wall_clock_time": 0.05561638, "process_in_blocks": "54520", "process_kernel_time": 0.296864, "process_mem_max_rss": "104468", "process_out_blocks": "16", "process_user_time": 1.104995}
+[0m10:07:47.332473 [debug] [MainThread]: Command `dbt run` failed at 10:07:47.332333 after 0.06 seconds
+[0m10:07:47.332845 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884d9178ef0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884d8d67380>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7884d900ac00>]}
+[0m10:07:47.333210 [debug] [MainThread]: Flushing usage events
+[0m10:07:47.806785 [debug] [MainThread]: An error was encountered while trying to flush usage events

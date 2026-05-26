@@ -1,0 +1,44 @@
+{{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    on_schema_change='append_new_columns'
+) }}
+
+select
+    cast("Date" as date) as sale_date,
+
+    upper(trim(
+        case
+            when "Location" ilike 'Qargo Coffee %' then substring("Location" from 14)
+            when "Location" ilike 'Qargo %'        then substring("Location" from 7)
+            else "Location"
+        end
+    )) as store_name,
+
+    case
+        when split_part("Group", '(', 1) ilike '%beverage%'      then 'Beverage'
+        when split_part("Group", '(', 1) ilike '%bottled drink%'  then 'Beverage'
+        when split_part("Group", '(', 1) ilike '%food%'           then 'Food'
+        when split_part("Group", '(', 1) ilike '%bakery%'         then 'Food'
+        when split_part("Group", '(', 1) ilike '%grab%'           then 'Food'
+        when split_part("Group", '(', 1) ilike '%taste of italy%' then 'Food'
+        when split_part("Group", '(', 1) ilike '%combo%'          then 'Food'
+        when split_part("Group", '(', 1) ilike '%cold good%'      then 'Food'
+        when split_part("Group", '(', 1) ilike '%retail%'         then 'Retail'
+        else 'Other'
+    end as revenue_center,
+
+    "FinalPrice" as net_sales,
+    "Account"    as order_id,
+    0.0          as tip_amount,
+    'ls2'        as _source_system
+
+from {{ ref('bronze_ls2') }}
+where
+    split_part("Group", '(', 1) not ilike '%modifier%'
+    and "FinalPrice" is not null
+    {% if is_incremental() %}
+    and cast("Date" as date) > (
+        select coalesce(max(sale_date), '2000-01-01'::date) from {{ this }}
+    )
+    {% endif %}

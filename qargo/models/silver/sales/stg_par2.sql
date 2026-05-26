@@ -1,0 +1,40 @@
+{{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    on_schema_change='append_new_columns'
+) }}
+
+select
+    cast("Date" as date) as sale_date,
+
+    upper(trim(
+        case
+            when "Location" ilike 'Qargo Coffee %' then substring("Location" from 14)
+            when "Location" ilike 'Qargo %'        then substring("Location" from 7)
+            else "Location"
+        end
+    )) as store_name,
+
+    case
+        when lower("Revenue Center") like '%beverage%' then 'Beverage'
+        when lower("Revenue Center") like '%food%'     then 'Food'
+        when lower("Revenue Center") like '%retail%'   then 'Retail'
+        when lower("Revenue Center") like '%combo%'    then 'Food'
+        else 'Other'
+    end as revenue_center,
+
+    "Net Sales"  as net_sales,
+    "Order ID"   as order_id,
+    0.0          as tip_amount,
+    'par2'       as _source_system
+
+from {{ ref('bronze_par2') }}
+where
+    "Voided"          = false
+    and "Is Modifier" = false
+    and "Net Sales"   is not null
+    {% if is_incremental() %}
+    and cast("Date" as date) > (
+        select coalesce(max(sale_date), '2000-01-01'::date) from {{ this }}
+    )
+    {% endif %}
