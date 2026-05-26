@@ -130,6 +130,13 @@ jobs:
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
 
+      - name: Verify build output
+        run: |
+          echo "=== Build directory contents ==="
+          ls -la dashboard/.evidence/template/build/ 2>&1 || echo "ERROR: directory not found"
+          echo "=== Evidence template contents ==="
+          ls dashboard/.evidence/template/ 2>&1
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
