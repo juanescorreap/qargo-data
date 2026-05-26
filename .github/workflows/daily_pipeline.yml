@@ -135,4 +135,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dashboard/build --project-name=qargo-dashboard --commit-dirty=true
+          command: pages deploy dashboard/.evidence/template/build --project-name=qargo-dashboard --commit-dirty=true
