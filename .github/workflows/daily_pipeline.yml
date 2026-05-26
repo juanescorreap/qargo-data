@@ -102,9 +102,15 @@ jobs:
       - name: Install Evidence dependencies
         run: npm ci --prefix dashboard
 
+      - name: Generate Evidence sources
+        run: npm run sources --prefix dashboard
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
-        # SUPABASE_* vars are available here from the export step above
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
