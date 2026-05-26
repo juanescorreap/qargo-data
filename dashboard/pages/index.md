@@ -70,6 +70,8 @@ order by d.date
     sort=true
 />
 
+<DataTable data={stores_this_month} link=/stores/{store_name} />
+
 ## Daily Network Sales — Last 30 Days
 
 <LineChart
