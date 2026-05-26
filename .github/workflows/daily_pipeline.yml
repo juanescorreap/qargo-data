@@ -107,7 +107,7 @@ jobs:
           python3 - << 'PYEOF'
           import os, pathlib, yaml
           config = {
-              'name': 'qargo',
+              'name': 'gold',
               'type': 'postgres',
               'options': {
                   'host': os.environ['SUPABASE_HOST'],
@@ -118,7 +118,7 @@ jobs:
                   'ssl': {'rejectUnauthorized': False},
               },
           }
-          dest = pathlib.Path('dashboard/sources/qargo/connection.yaml')
+          dest = pathlib.Path('dashboard/sources/gold/connection.yaml')
           dest.parent.mkdir(parents=True, exist_ok=True)
           dest.write_text(yaml.dump(config, default_flow_style=False, allow_unicode=True))
           print("connection.yaml written OK")

@@ -1,4 +1,4 @@
-name: qargo
+name: gold
 type: postgres
 options:
   host: ${SUPABASE_HOST}
