@@ -28,30 +28,33 @@ jobs:
       - name: Create dbt profiles.yml
         run: |
           python3 - << 'PYEOF'
-          import os, urllib.parse, pathlib
+          import os, urllib.parse, pathlib, yaml
           url = urllib.parse.urlparse(os.environ['SUPABASE_DB_URL'])
           password = urllib.parse.unquote(url.password)
-          content = (
-              "qargo:\n"
-              "  target: dev\n"
-              "  outputs:\n"
-              "    dev:\n"
-              "      type: postgres\n"
-              f"      host: {url.hostname}\n"
-              f"      port: {url.port or 6543}\n"
-              f"      dbname: {url.path.lstrip('/')}\n"
-              f"      user: {url.username}\n"
-              f"      password: \"{password}\"\n"
-              "      schema: bronze\n"
-              "      threads: 4\n"
-              "      connect_timeout: 10\n"
-              "      sslmode: require\n"
-              "      options: \"-c statement_timeout=30000\"\n"
-              "      prepare_threshold: 0\n"
-          )
+          profiles = {
+              'qargo': {
+                  'target': 'dev',
+                  'outputs': {
+                      'dev': {
+                          'type': 'postgres',
+                          'host': url.hostname,
+                          'port': url.port or 6543,
+                          'dbname': url.path.lstrip('/'),
+                          'user': url.username,
+                          'password': password,
+                          'schema': 'bronze',
+                          'threads': 4,
+                          'connect_timeout': 10,
+                          'sslmode': 'require',
+                          'options': '-c statement_timeout=30000',
+                          'prepare_threshold': 0,
+                      }
+                  }
+              }
+          }
           dbt_dir = pathlib.Path.home() / '.dbt'
           dbt_dir.mkdir(exist_ok=True)
-          (dbt_dir / 'profiles.yml').write_text(content)
+          (dbt_dir / 'profiles.yml').write_text(yaml.dump(profiles, default_flow_style=False, allow_unicode=True))
           print("profiles.yml created OK")
           PYEOF
         env:
