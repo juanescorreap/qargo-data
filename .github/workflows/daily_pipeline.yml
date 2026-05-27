@@ -43,7 +43,7 @@ jobs:
                       'dev': {
                           'type': 'postgres',
                           'host': url.hostname,
-                          'port': url.port or 6543,
+                          'port': 5432,
                           'dbname': url.path.lstrip('/'),
                           'user': url.username,
                           'password': password,
