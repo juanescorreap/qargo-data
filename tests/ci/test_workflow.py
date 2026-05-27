@@ -21,6 +21,7 @@ EXPECTED_STEP_NAMES = [
     "Checkout repo",
     "Set up Python 3.12",
     "Install Python dependencies",
+    "Run Python tests",
     "Create dbt profiles.yml",
     "Export Supabase connection vars",
     "Load new data into Supabase",
