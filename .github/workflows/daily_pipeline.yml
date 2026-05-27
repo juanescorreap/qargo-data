@@ -142,49 +142,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Offload large WASM to R2 and patch build
-        run: |
-          python3 - << 'PYEOF'
-          import os, subprocess, pathlib
-
-          build_dir   = pathlib.Path('dashboard/.evidence/template/build')
-          r2_base     = os.environ['R2_PUBLIC_URL'].rstrip('/')
-          bucket      = 'qargo-assets'
-          limit_bytes = 25 * 1024 * 1024  # Cloudflare Pages 25 MiB per-file hard limit
-
-          for wasm in sorted(build_dir.rglob('*.wasm')):
-              size = wasm.stat().st_size
-              if size <= limit_bytes:
-                  print(f'OK  {wasm.name}  ({size / 1024 / 1024:.1f} MiB)')
-                  continue
-
-              rel      = wasm.relative_to(build_dir)
-              rel_path = '/' + '/'.join(rel.parts)  # e.g. /_app/immutable/assets/duckdb-eh.HASH.wasm
-              r2_key   = wasm.name
-              r2_url   = f'{r2_base}/{r2_key}'
-
-              print(f'Upload  {rel}  ({size / 1024 / 1024:.1f} MiB)  ->  {r2_url}')
-              subprocess.run(
-                  ['npx', 'wrangler@3.112.0', 'r2', 'object', 'put',
-                   f'{bucket}/{r2_key}', '--file', str(wasm),
-                   '--content-type', 'application/wasm'],
-                  check=True,
-              )
-
-              patched = 0
-              for js in build_dir.rglob('*.js'):
-                  try:
-                      text = js.read_text('utf-8')
-                  except Exception:
-                      continue
-                  if rel_path not in text:
-                      continue
-                  js.write_text(text.replace(rel_path, r2_url), 'utf-8')
-                  patched += 1
-
-              print(f'  Patched {patched} JS file(s) to reference R2 URL')
-              wasm.unlink()
-              print(f'  Deleted {rel} from build dir')
-          PYEOF
+        run: python ci/r2_offload.py 2>&1
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
