@@ -94,10 +94,13 @@ class PARSoapClient:
         exclude_open: bool = True,
         price_rollup: str = "RollUp",
     ) -> dict[str, Any]:
+        # API expects a full dateTime value — plain date strings cause ResultCode=1
+        # on production endpoints (sandbox is more lenient).
+        dt_value = business_date if "T" in business_date else f"{business_date}T00:00:00"
         body = (
             "<v2:GetOrders>"
             "<v2:request>"
-            f"<v2:BusinessDate>{business_date}</v2:BusinessDate>"
+            f"<v2:BusinessDate>{dt_value}</v2:BusinessDate>"
             f"<v2:ExcludeOpenOrders>{'true' if exclude_open else 'false'}</v2:ExcludeOpenOrders>"
             f"<v2:PriceRollUp>{price_rollup}</v2:PriceRollUp>"
             "</v2:request>"
