@@ -22,3 +22,7 @@ select
     abs(hashtext(employee_name)::bigint) as employee_key,
     employee_name
 from combined
+
+union all
+
+select 0::bigint, 'UNKNOWN'

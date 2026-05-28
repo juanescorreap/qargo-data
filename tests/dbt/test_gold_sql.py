@@ -495,3 +495,105 @@ class TestDimEmployeeFilter:
     def test_alphanumeric_name_passes(self):
         sql = "select 'CASHIER1' !~ '^[0-9]+$'"
         assert _scalar(sql) is True
+
+    def test_unknown_row_present(self):
+        sql = "select count(*) from (select 0::bigint as k, 'UNKNOWN' as n) where n = 'UNKNOWN'"
+        assert _scalar(sql) == 1
+
+
+# ---------------------------------------------------------------------------
+# fact_sales_by_employee — aggregation logic
+# ---------------------------------------------------------------------------
+
+FACT_EMPLOYEE_SQL = """
+with orders as (
+    select * from (values
+        -- sale_date, store_name, employee_name, net_sales, order_id, tip_amount, tax_amount, discount_total
+        ('2025-01-01'::date, 'TAMPA', 'ALICE',   120.00, 'O001', 2.0, 9.60, 0.0),
+        ('2025-01-01'::date, 'TAMPA', 'ALICE',    80.00, 'O002', 1.5, 6.40, 5.0),
+        ('2025-01-01'::date, 'TAMPA', 'BOB',      60.00, 'O003', 0.0, 4.80, 0.0),
+        ('2025-01-01'::date, 'TAMPA',  null,      40.00, 'O004', 0.0, 3.20, 0.0)
+    ) t(sale_date, store_name, employee_name, net_sales, order_id, tip_amount, tax_amount, discount_total)
+),
+dim_date as (
+    select cast(strftime(DATE '2025-01-01', '%Y%m%d') as integer) as date_key, DATE '2025-01-01' as date
+),
+dim_store as (
+    select 5001::bigint as store_key, 'TAMPA' as store_name
+),
+dim_employee as (
+    select 101::bigint as employee_key, 'ALICE'   as employee_name
+    union all select 102::bigint,       'BOB'
+    union all select 0::bigint,         'UNKNOWN'
+),
+joined as (
+    select
+        d.date_key,
+        s.store_key,
+        coalesce(emp.employee_key, 0) as employee_key,
+        o.net_sales,
+        o.order_id,
+        o.tip_amount,
+        o.tax_amount,
+        o.discount_total
+    from orders o
+    inner join dim_date     d   on o.sale_date                          = d.date
+    inner join dim_store    s   on o.store_name                         = s.store_name
+    left  join dim_employee emp on coalesce(o.employee_name, 'UNKNOWN') = emp.employee_name
+)
+select
+    date_key,
+    store_key,
+    employee_key,
+    sum(net_sales)                                                              as net_sales,
+    count(distinct order_id)                                                    as order_count,
+    sum(tip_amount)                                                             as tip_amount,
+    sum(tax_amount)                                                             as tax_amount,
+    sum(discount_total)                                                         as discount_total,
+    round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)  as avg_ticket
+from joined
+group by date_key, store_key, employee_key
+order by employee_key
+"""
+
+
+@pytest.fixture(scope="module")
+def fact_employee():
+    con = duckdb.connect()
+    return con.execute(FACT_EMPLOYEE_SQL).df()
+
+
+class TestFactSalesByEmployee:
+    def test_three_rows_alice_bob_unknown(self, fact_employee):
+        assert len(fact_employee) == 3
+
+    def test_alice_net_sales(self, fact_employee):
+        alice = fact_employee[fact_employee["employee_key"] == 101].iloc[0]
+        assert float(alice["net_sales"]) == pytest.approx(200.0)
+
+    def test_alice_order_count(self, fact_employee):
+        alice = fact_employee[fact_employee["employee_key"] == 101].iloc[0]
+        assert int(alice["order_count"]) == 2
+
+    def test_alice_avg_ticket(self, fact_employee):
+        alice = fact_employee[fact_employee["employee_key"] == 101].iloc[0]
+        assert float(alice["avg_ticket"]) == pytest.approx(100.0)
+
+    def test_alice_tip_summed(self, fact_employee):
+        alice = fact_employee[fact_employee["employee_key"] == 101].iloc[0]
+        assert float(alice["tip_amount"]) == pytest.approx(3.5)
+
+    def test_alice_discount_summed(self, fact_employee):
+        alice = fact_employee[fact_employee["employee_key"] == 101].iloc[0]
+        assert float(alice["discount_total"]) == pytest.approx(5.0)
+
+    def test_bob_net_sales(self, fact_employee):
+        bob = fact_employee[fact_employee["employee_key"] == 102].iloc[0]
+        assert float(bob["net_sales"]) == pytest.approx(60.0)
+
+    def test_null_employee_falls_back_to_unknown(self, fact_employee):
+        unknown = fact_employee[fact_employee["employee_key"] == 0].iloc[0]
+        assert float(unknown["net_sales"]) == pytest.approx(40.0)
+
+    def test_unique_key_is_date_store_employee(self, fact_employee):
+        assert len(fact_employee) == fact_employee[["date_key", "store_key", "employee_key"]].drop_duplicates().__len__()

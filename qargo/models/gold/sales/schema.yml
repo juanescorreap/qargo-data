@@ -16,3 +16,22 @@ models:
       - name: order_count
         tests:
           - not_null
+
+  - name: fact_sales_by_employee
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: employee_key
+        tests:
+          - not_null
+      - name: net_sales
+        tests:
+          - not_null
+          - is_non_negative
+      - name: order_count
+        tests:
+          - not_null
