@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — Store Performance
+title: Store Performance
 ---
 
 ```sql store_ranking_this_month
@@ -86,7 +86,7 @@ group by s.store_name, d.year, d.month
 order by d.year, d.month
 ```
 
-## Store Ranking — This Month
+## Store Ranking, This Month
 
 <DataTable data={store_ranking_this_month} />
 
@@ -94,11 +94,11 @@ order by d.year, d.month
     data={store_ranking_this_month}
     x=store_name
     y=net_sales
-    title="Net Sales by Store — This Month"
+    title="Net Sales by Store, This Month"
     sort=true
 />
 
-## Avg Ticket by Store — This Month
+## Avg Ticket by Store, This Month
 
 <BarChart
     data={avg_ticket_comparison}
@@ -108,7 +108,7 @@ order by d.year, d.month
     sort=true
 />
 
-## Royalties Due — Year to Date
+## Royalties Due, Year to Date
 
 <DataTable data={royalties_ytd} />
 
@@ -120,7 +120,7 @@ order by d.year, d.month
     sort=true
 />
 
-## Discount Efficiency by Store — This Month
+## Discount Efficiency by Store, This Month
 
 <DataTable data={discount_efficiency} />
 

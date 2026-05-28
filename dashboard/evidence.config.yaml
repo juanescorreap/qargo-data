@@ -1,53 +1,55 @@
 appearance:
-  default: system
-  switcher: true
+  default: light
+  switcher: false
 
 theme:
   colorPalettes:
     default:
       light:
-        - "#236aa4"
-        - "#45a1bf"
-        - "#a5cdee"
-        - "#8dacbf"
-        - "#85c7c6"
-        - "#d2c6ac"
-        - "#f4b548"
-        - "#8f3d56"
-        - "#71b9f4"
-        - "#46a485"
+        - "#0F35A6"
+        - "#5E778C"
+        - "#163573"
+        - "#0E3659"
+        - "#7A96AA"
+        - "#2B52C4"
+        - "#3D6B80"
+        - "#A8BBC8"
+        - "#1A3F7A"
+        - "#C8D4DC"
       dark:
-        - "#236aa4"
-        - "#45a1bf"
-        - "#a5cdee"
-        - "#8dacbf"
-        - "#85c7c6"
-        - "#d2c6ac"
-        - "#f4b548"
-        - "#8f3d56"
-        - "#71b9f4"
-        - "#46a485"
+        - "#0F35A6"
+        - "#5E778C"
+        - "#163573"
+        - "#0E3659"
+        - "#7A96AA"
+        - "#2B52C4"
+        - "#3D6B80"
+        - "#A8BBC8"
+        - "#1A3F7A"
+        - "#C8D4DC"
+
   colorScales:
     default:
       light:
-        - "#ADD8E6"
-        - "#00008B"
+        - "#C8D4DC"
+        - "#0F35A6"
       dark:
-        - "#ADD8E6"
-        - "#00008B"
+        - "#C8D4DC"
+        - "#0F35A6"
+
   colors:
     primary:
-      light: "#2563eb"
-      dark: "#3b82f6"
+      light: "#0F35A6"
+      dark: "#0F35A6"
     accent:
-      light: "#c2410c"
-      dark: "#fdba74"
+      light: "#5E778C"
+      dark: "#7A96AA"
     base:
-      light: "#ffffff"
-      dark: "#09090b"
+      light: "#F2F2F0"
+      dark: "#0E3659"
     info:
-      light: "#0284c7"
-      dark: "#38bdf8"
+      light: "#163573"
+      dark: "#2B52C4"
     positive:
       light: "#16a34a"
       dark: "#4ade80"
@@ -60,13 +62,9 @@ theme:
 
 plugins:
   components:
-    # This loads all of evidence's core charts and UI components
-    # You probably don't want to edit this dependency unless you know what you are doing
     "@evidence-dev/core-components": {}
 
   datasources:
-    # You can add additional datasources here by adding npm packages. 
-    # Make to also add them to `package.json`.
     "@evidence-dev/bigquery": { }
     "@evidence-dev/csv": { }
     "@evidence-dev/databricks": { }

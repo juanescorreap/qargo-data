@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — Network Dashboard
+title: Dashboard
 ---
 
 ```sql current_month_summary
@@ -89,13 +89,13 @@ limit 10
 <BigValue
     data={current_month_summary}
     value=total_sales
-    title="Network Sales — This Month"
+    title="Total Sales, This Month"
     fmt=usd
 />
 <BigValue
     data={current_month_summary}
     value=total_royalties
-    title="Total Royalties — This Month"
+    title="Total Royalties, This Month"
     fmt=usd
 />
 
@@ -105,13 +105,13 @@ limit 10
     data={stores_this_month}
     x=store_name
     y=net_sales
-    title="Net Sales by Store — Current Month"
+    title="Net Sales by Store, Current Month"
     sort=true
 />
 
 <DataTable data={stores_this_month} link=store_url />
 
-## Daily Network Sales — Last 30 Days
+## Daily Sales, Last 30 Days
 
 <LineChart
     data={daily_last_30}
@@ -120,7 +120,7 @@ limit 10
     title="Daily Total Sales"
 />
 
-## Sales by Channel — This Month
+## Sales by Channel, This Month
 
 <BarChart
     data={channel_mix}
@@ -129,6 +129,6 @@ limit 10
     title="Net Sales by Channel"
 />
 
-## Top 10 Employees — This Month
+## Top 10 Employees, This Month
 
 <DataTable data={top_employees} />
