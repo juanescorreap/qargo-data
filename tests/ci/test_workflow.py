@@ -15,6 +15,7 @@ EXPECTED_SECRETS = [
     "CLOUDFLARE_API_TOKEN",
     "CLOUDFLARE_ACCOUNT_ID",
     "R2_PUBLIC_URL",
+    "PAR_ACCESS_TOKEN",
 ]
 
 EXPECTED_STEP_NAMES = [
@@ -25,6 +26,7 @@ EXPECTED_STEP_NAMES = [
     "Create dbt profiles.yml",
     "Export Supabase connection vars",
     "Load new data into Supabase",
+    "Ingest PAR API data",
     "dbt run",
     "dbt test",
     "Install Evidence dependencies",

@@ -97,6 +97,20 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
+      - name: Ingest PAR API data
+        run: |
+          if [ -z "$PAR_ACCESS_TOKEN" ]; then
+            echo "PAR_ACCESS_TOKEN not configured — skipping PAR API ingestion."
+            exit 0
+          fi
+          python ingestion/par_api.py
+        env:
+          PAR_ACCESS_TOKEN: ${{ secrets.PAR_ACCESS_TOKEN }}
+          PAR_SANDBOX_LOCATION_TOKEN: ${{ secrets.PAR_SANDBOX_LOCATION_TOKEN }}
+          PAR_SANDBOX_URL: ${{ secrets.PAR_SANDBOX_URL }}
+          PAR_DEFAULT_ENDPOINT: ${{ secrets.PAR_DEFAULT_ENDPOINT }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
       - name: dbt run
         run: dbt run --project-dir qargo --profiles-dir ~/.dbt
 
