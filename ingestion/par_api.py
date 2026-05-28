@@ -311,9 +311,9 @@ def build_raw_par2_rows(
             "Revenue Center": entry.get("revenue_center_id"),
             "Has Employee Discount": None,
             "Destination": order.get("destination_id"),
-            "Voided": entry.get("is_voided"),
+            "Voided": entry.get("is_voided") or False,
             "Has Customer": None,
-            "Is Modifier": None,
+            "Is Modifier": False,  # top-level OrderEntry, never a modifier
             "Order ID": entry["order_id"],
             "_source_file": None,
             "_source_system": "par_api",
