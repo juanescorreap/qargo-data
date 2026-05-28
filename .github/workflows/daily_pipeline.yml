@@ -36,8 +36,8 @@ jobs:
           import os, urllib.parse, pathlib, yaml
           url = urllib.parse.urlparse(os.environ['SUPABASE_DB_URL'])
           password = urllib.parse.unquote(url.password)
-          # Derive direct DB host from pooler username (format: 'postgres.PROJECT_REF').
-          # Direct connections bypass Supavisor's pooler-enforced statement timeout.
+          # Derive db.<ref>.supabase.co from the pooler username (format: 'postgres.PROJECT_REF')
+          # to bypass Supavisor's statement_timeout enforcement.
           parts = (url.username or '').split('.')
           project_ref = parts[-1] if len(parts) > 1 else ''
           db_host = f'db.{project_ref}.supabase.co' if project_ref else url.hostname
