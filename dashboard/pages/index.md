@@ -48,6 +48,44 @@ group by d.date
 order by d.date
 ```
 
+```sql channel_mix
+select
+    dest.channel,
+    round(sum(f.net_sales)::numeric, 2) as net_sales,
+    sum(f.order_count)                  as order_count
+from gold.fact_sales f
+join gold.dim_destination dest on f.destination_key = dest.destination_key
+join gold.dim_date d on f.date_key = d.date_key
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2
+    join gold.fact_sales f2 on d2.date_key = f2.date_key
+)
+and dest.channel <> 'Unknown'
+group by dest.channel
+order by net_sales desc
+```
+
+```sql top_employees
+select
+    e.employee_name,
+    round(sum(f.net_sales)::numeric, 2)  as net_sales,
+    sum(f.order_count)                   as order_count,
+    round(avg(f.avg_ticket)::numeric, 2) as avg_ticket
+from gold.fact_sales_by_employee f
+join gold.dim_employee e on f.employee_key = e.employee_key
+join gold.dim_date     d on f.date_key     = d.date_key
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2
+    join gold.fact_sales_by_employee f2 on d2.date_key = f2.date_key
+)
+and e.employee_name <> 'UNKNOWN'
+group by e.employee_name
+order by net_sales desc
+limit 10
+```
+
 <BigValue
     data={current_month_summary}
     value=total_sales
@@ -81,3 +119,16 @@ order by d.date
     y=net_sales
     title="Daily Total Sales"
 />
+
+## Sales by Channel — This Month
+
+<BarChart
+    data={channel_mix}
+    x=channel
+    y=net_sales
+    title="Net Sales by Channel"
+/>
+
+## Top 10 Employees — This Month
+
+<DataTable data={top_employees} />
