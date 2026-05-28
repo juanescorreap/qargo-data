@@ -36,27 +36,22 @@ jobs:
           import os, urllib.parse, pathlib, yaml
           url = urllib.parse.urlparse(os.environ['SUPABASE_DB_URL'])
           password = urllib.parse.unquote(url.password)
-          # Derive db.<ref>.supabase.co from the pooler username (format: 'postgres.PROJECT_REF')
-          # to bypass Supavisor's statement_timeout enforcement.
-          parts = (url.username or '').split('.')
-          project_ref = parts[-1] if len(parts) > 1 else ''
-          db_host = f'db.{project_ref}.supabase.co' if project_ref else url.hostname
           profiles = {
               'qargo': {
                   'target': 'dev',
                   'outputs': {
                       'dev': {
                           'type': 'postgres',
-                          'host': db_host,
-                          'port': 5432,
+                          'host': url.hostname,
+                          'port': url.port or 5432,
                           'dbname': url.path.lstrip('/'),
-                          'user': 'postgres',
+                          'user': url.username,
                           'password': password,
                           'schema': 'bronze',
                           'threads': 4,
                           'connect_timeout': 10,
                           'sslmode': 'require',
-                          'keepalives_idle': 600,
+                          'prepare_threshold': 0,
                       }
                   }
               }
@@ -64,7 +59,7 @@ jobs:
           dbt_dir = pathlib.Path.home() / '.dbt'
           dbt_dir.mkdir(exist_ok=True)
           (dbt_dir / 'profiles.yml').write_text(yaml.dump(profiles, default_flow_style=False, allow_unicode=True))
-          print(f"profiles.yml created OK (host={db_host})")
+          print(f"profiles.yml created OK (host={url.hostname})")
           PYEOF
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
