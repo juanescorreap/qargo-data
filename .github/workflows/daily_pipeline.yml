@@ -106,9 +106,8 @@ jobs:
           python ingestion/par_api.py
         env:
           PAR_ACCESS_TOKEN: ${{ secrets.PAR_ACCESS_TOKEN }}
-          PAR_SANDBOX_LOCATION_TOKEN: ${{ secrets.PAR_SANDBOX_LOCATION_TOKEN }}
-          PAR_SANDBOX_URL: ${{ secrets.PAR_SANDBOX_URL }}
-          PAR_DEFAULT_ENDPOINT: ${{ secrets.PAR_DEFAULT_ENDPOINT }}
+          PAR_LOCATION_TOKEN: ${{ secrets.PAR_LOCATION_TOKEN }}
+          PAR_ENDPOINT: ${{ secrets.PAR_ENDPOINT }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
       - name: dbt run
