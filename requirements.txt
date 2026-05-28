@@ -23,6 +23,7 @@ et_xmlfile==2.0.0
 fonttools==4.62.1
 greenlet==3.5.1
 holidays==0.96
+httpx==0.28.1
 idna==3.13
 importlib_metadata==8.9.0
 importlib_resources==7.1.0
