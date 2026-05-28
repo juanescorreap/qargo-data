@@ -119,13 +119,6 @@ jobs:
       - name: Install Evidence dependencies
         run: npm ci --prefix dashboard
 
-      - name: Inject custom fonts into Evidence template
-        run: |
-          APP_HTML="dashboard/.evidence/template/src/app.html"
-          FONT_TAG='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700\&display=swap" rel="stylesheet"><link rel="stylesheet" href="/custom.css">'
-          sed -i "s|%sveltekit.head%|${FONT_TAG}%sveltekit.head%|" "$APP_HTML"
-          echo "Font injection done"
-
       - name: Create Evidence connection.yaml
         run: |
           python3 - << 'PYEOF'
@@ -150,6 +143,13 @@ jobs:
 
       - name: Generate Evidence sources
         run: npm run sources --prefix dashboard
+
+      - name: Inject custom fonts into Evidence template
+        run: |
+          APP_HTML="dashboard/.evidence/template/src/app.html"
+          FONT_TAG='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700\&display=swap" rel="stylesheet"><link rel="stylesheet" href="/custom.css">'
+          sed -i "s|%sveltekit.head%|${FONT_TAG}%sveltekit.head%|" "$APP_HTML"
+          echo "Font injection OK"
 
       - name: Build Evidence dashboard
         run: npm run build --prefix dashboard
