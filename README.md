@@ -169,6 +169,57 @@ Para múltiples tiendas, agregar `PAR_LOCATION_TOKEN_{NOMBRE}` por cada local ad
 
 ---
 
+## Actualización mensual de CSVs
+
+`data/` está en `.gitignore` — los CSVs viven solo en tu máquina local y se cargan manualmente a Supabase. El API cubre el día a día; los CSVs cubren meses completos ya cerrados.
+
+### Cuándo usar cada fuente
+
+| Frecuencia | Fuente | Acción |
+|---|---|---|
+| Diario (automático) | PAR API | CI corre solo — no requiere intervención |
+| Principios de cada mes | CSV PAR mensual | Proceso manual abajo |
+
+> **Importante:** no actualices el CSV del mes en curso semana a semana. El API ya cubre esos días. Actualiza el CSV solo cuando el mes esté cerrado.
+
+### Proceso para cargar un CSV mensual
+
+**Paso 1 — Borra el watermark** (solo si el archivo ya fue cargado antes)
+
+En Supabase → SQL Editor:
+```sql
+DELETE FROM ingestion.processed_files
+WHERE source_name = 'par2' AND filename = 'DDBB_May_26.csv';
+```
+
+**Paso 2 — Coloca el CSV en `data/`** con el nombre correcto (`DDBB_May_26.csv`) y corre:
+
+```bash
+make migrate-csv
+```
+
+Esto ejecuta en orden:
+```
+1. python ingestion/run.py --source par2        → bronze (raw_par2)
+2. dbt run --full-refresh --select
+       stg_par2                                 → silver
+       fact_sales                               → gold
+       fact_sales_by_employee                   → gold
+```
+
+El `--full-refresh` es obligatorio porque el API ya movió el watermark incremental al día de hoy — sin él, el CSV queda silenciosamente ignorado para los últimos días del mes.
+
+**Paso 3 — Verifica**
+
+```sql
+SELECT max(d.date), sum(f.net_sales)
+FROM gold.fact_sales f
+JOIN gold.dim_date d ON f.date_key = d.date_key
+WHERE d.date >= '2026-05-01';
+```
+
+---
+
 ## Desarrollo local
 
 ```bash
