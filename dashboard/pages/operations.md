@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — Operations & Finance
+title: Operations & Finance
 ---
 
 ```sql employee_productivity
@@ -107,11 +107,11 @@ order by d.year, d.month
 select * from gold.source_summary
 ```
 
-## Employee Productivity — This Month
+## Employee Productivity, This Month
 
 <DataTable data={employee_productivity} />
 
-## Tip Distribution — Top 20 This Month
+## Tip Distribution, Top 20 This Month
 
 <BarChart
     data={tip_distribution}
@@ -123,7 +123,7 @@ select * from gold.source_summary
 
 <DataTable data={tip_distribution} />
 
-## Discount Audit — This Month
+## Discount Audit, This Month
 
 <BarChart
     data={discount_audit}
@@ -135,7 +135,7 @@ select * from gold.source_summary
 
 <DataTable data={discount_audit} />
 
-## Tax Burden by Store — YTD
+## Tax Burden by Store, YTD
 
 <DataTable data={tax_by_store} />
 
@@ -150,7 +150,7 @@ select * from gold.source_summary
     title="Net Sales vs Gross Sales vs Discounts"
 />
 
-## Data Lineage — PAR vs LS2
+## Data Lineage: PAR vs LS2
 
 <DataTable
     data={source_system_comparison}

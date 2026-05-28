@@ -150,7 +150,7 @@ order by net_sales desc
 limit 15
 ```
 
-<BigValue data={this_month}    value=total_sales       title="Sales — This Month"          fmt=usd />
+<BigValue data={this_month}    value=total_sales       title="Sales, This Month"          fmt=usd />
 <BigValue data={projected}     value=projected_sales   title="Projected Month-End"         fmt=usd />
 <BigValue data={yoy}           value=yoy_pct           title="vs Same Month Last Year"     fmt=num1 />
 
@@ -160,14 +160,14 @@ limit 15
     data={monthly_overlay}
     x=day_of_month
     y={["this_month","last_month"]}
-    title="Daily Sales — Month over Month"
+    title="Daily Sales, Month over Month"
 />
 
 ## Daily Breakdown
 
 <DataTable data={daily_breakdown} />
 
-## Sales by Channel — This Month
+## Sales by Channel, This Month
 
 <BarChart
     data={channel_this_month}
@@ -176,6 +176,6 @@ limit 15
     title="Net Sales by Channel"
 />
 
-## Top Employees — This Month
+## Top Employees, This Month
 
 <DataTable data={top_employees_store} />

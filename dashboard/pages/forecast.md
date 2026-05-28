@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — 2026 Forecast
+title: 2026 Forecast
 ---
 
 ```sql monthly_pivot_2026
@@ -39,16 +39,16 @@ group by d.month, d.month_name, d.year
 order by d.month, d.year
 ```
 
-## Monthly Sales by Store — 2026
+## Monthly Sales by Store, 2026
 
 <DataTable data={monthly_pivot_2026} />
 
-## Network Monthly Sales — 2025 vs 2026
+## Monthly Sales, 2025 vs 2026
 
 <BarChart
     data={monthly_comparison}
     x=month_name
     y=net_sales
     series=year
-    title="Monthly Network Sales — 2025 vs 2026"
+    title="Monthly Sales 2025 vs 2026"
 />

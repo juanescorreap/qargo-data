@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — Products & Channels
+title: Products & Channels
 ---
 
 ```sql category_mix_this_month
@@ -103,7 +103,7 @@ group by d.year, d.month
 order by d.year, d.month
 ```
 
-## Sales Mix by Category — This Month
+## Sales Mix by Category, This Month
 
 <BarChart
     data={category_mix_this_month}
@@ -124,7 +124,7 @@ order by d.year, d.month
     title="Monthly Sales by Category"
 />
 
-## Discount Impact by Category — YTD
+## Discount Impact by Category, YTD
 
 <BarChart
     data={category_discount_analysis}
@@ -135,7 +135,7 @@ order by d.year, d.month
 
 <DataTable data={category_discount_analysis} />
 
-## Omnichannel — This Month
+## Omnichannel, This Month
 
 <BarChart
     data={channel_comparison}
@@ -146,7 +146,7 @@ order by d.year, d.month
 
 <DataTable data={channel_comparison} />
 
-## Avg Ticket by Channel — This Month
+## Avg Ticket by Channel, This Month
 
 <BarChart
     data={channel_avg_ticket}
@@ -156,7 +156,7 @@ order by d.year, d.month
     sort=true
 />
 
-## Data Quality — Unknown Destination Monitor
+## Data Quality: Unknown Destination Monitor
 
 <DataTable
     data={unknown_destination_monitor}

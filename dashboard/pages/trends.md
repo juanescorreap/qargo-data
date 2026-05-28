@@ -1,5 +1,5 @@
 ---
-title: Qargo Coffee — Trends & Temporal Analysis
+title: Trends & Temporal Analysis
 ---
 
 ```sql monthly_sales
@@ -133,7 +133,7 @@ order by d.year, d.quarter
     x=month_name
     y=net_sales
     series=year
-    title="Monthly Sales — 2024 / 2025 / 2026"
+    title="Monthly Sales 2024, 2025, 2026"
 />
 
 ## Month-over-Month Growth
@@ -178,7 +178,7 @@ order by d.year, d.quarter
     data={weekend_vs_weekday}
     x=day_type
     y=avg_daily_sales
-    title="Avg Daily Sales — Weekday vs Weekend"
+    title="Avg Daily Sales, Weekday vs Weekend"
 />
 
 <DataTable data={weekend_vs_weekday} />
