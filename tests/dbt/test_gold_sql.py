@@ -258,12 +258,13 @@ FACT_SALES_LOGIC_SQL = """
 -- Minimal stub of the fact_sales aggregation logic
 with orders as (
     select * from (values
-        -- (sale_date, store_name, revenue_center, net_sales, order_id, tip_amount)
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 10.00, 'A001', 0.0),
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 15.00, 'A002', 1.0),
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage',  5.00, 'A001', 0.0),   -- same order_id as row 1
-        ('2025-01-02'::date, 'BERKELEY', 'Food',      8.00, 'A003', 0.5)
-    ) t(sale_date, store_name, revenue_center, net_sales, order_id, tip_amount)
+        -- sale_date, store_name, revenue_center, net_sales, order_id, tip_amount, destination, tax_amount, discount_total
+        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 10.00, 'A001', 0.0, 'DINE IN', 0.80, 0.00),
+        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 15.00, 'A002', 1.0, 'DINE IN', 1.20, 0.50),
+        ('2025-01-01'::date, 'BERKELEY', 'Beverage',  5.00, 'A001', 0.0, 'DINE IN', 0.40, 0.00),
+        ('2025-01-02'::date, 'BERKELEY', 'Food',      8.00, 'A003', 0.5, 'TO GO',   0.64, 0.00)
+    ) t(sale_date, store_name, revenue_center, net_sales, order_id, tip_amount,
+        destination, tax_amount, discount_total)
 ),
 dim_date as (
     select
@@ -280,29 +281,41 @@ dim_product as (
     union all select 3, 'Retail'
     union all select 4, 'Other'
 ),
+dim_destination as (
+    select 1001::bigint as destination_key, 'DINE IN' as destination_name
+    union all select 1002::bigint, 'TO GO'
+    union all select 0::bigint,   'UNKNOWN'
+),
 joined as (
     select
         d.date_key,
         s.store_key,
+        coalesce(dest.destination_key, 0) as destination_key,
         p.product_key,
         o.net_sales,
         o.order_id,
-        o.tip_amount
+        o.tip_amount,
+        o.tax_amount,
+        o.discount_total
     from orders o
-    inner join dim_date    d on o.sale_date      = d.date
-    inner join dim_store   s on o.store_name     = s.store_name
-    left  join dim_product p on o.revenue_center = p.revenue_center_name
+    inner join dim_date        d    on o.sale_date                           = d.date
+    inner join dim_store       s    on o.store_name                          = s.store_name
+    left  join dim_product     p    on o.revenue_center                      = p.revenue_center_name
+    left  join dim_destination dest on coalesce(o.destination, 'UNKNOWN')   = dest.destination_name
 )
 select
     date_key,
     store_key,
     product_key,
-    sum(net_sales)                                                               as net_sales,
-    count(distinct order_id)                                                     as order_count,
-    sum(tip_amount)                                                              as tip_amount,
-    round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)   as avg_ticket
+    destination_key,
+    sum(net_sales)                                                              as net_sales,
+    count(distinct order_id)                                                    as order_count,
+    sum(tip_amount)                                                             as tip_amount,
+    sum(tax_amount)                                                             as tax_amount,
+    sum(discount_total)                                                         as discount_total,
+    round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)  as avg_ticket
 from joined
-group by date_key, store_key, product_key
+group by date_key, store_key, product_key, destination_key
 order by date_key, product_key
 """
 
@@ -382,10 +395,103 @@ class TestFactSalesJoinBehavior:
         result = _run(sql)
         assert result[0][0] is None
 
-    def test_unique_key_is_date_store_product(self):
-        # Verify that the GROUP BY produces one row per (date_key, store_key, product_key)
+    def test_unique_key_is_date_store_product_destination(self):
         sql = """
-        select count(*) = count(distinct (date_key, store_key, product_key)) as is_unique
+        select count(*) = count(distinct (date_key, store_key, product_key, destination_key))
         from ({fact})
         """.format(fact=FACT_SALES_LOGIC_SQL)
         assert _scalar(sql) in (True, 1)
+
+    def test_destination_key_propagated(self):
+        sql = """
+        select destination_key from ({fact}) where product_key = 1
+        """.format(fact=FACT_SALES_LOGIC_SQL)
+        assert _run(sql)[0][0] == 1001
+
+    def test_tax_amount_summed(self):
+        # Beverage rows: 0.80 + 1.20 + 0.40 = 2.40
+        sql = """
+        select tax_amount from ({fact}) where product_key = 1
+        """.format(fact=FACT_SALES_LOGIC_SQL)
+        assert float(_run(sql)[0][0]) == pytest.approx(2.40)
+
+    def test_discount_total_summed(self):
+        # Beverage rows: 0.0 + 0.50 + 0.0 = 0.50
+        sql = """
+        select discount_total from ({fact}) where product_key = 1
+        """.format(fact=FACT_SALES_LOGIC_SQL)
+        assert float(_run(sql)[0][0]) == pytest.approx(0.50)
+
+
+# ---------------------------------------------------------------------------
+# dim_destination — channel classification
+# ---------------------------------------------------------------------------
+
+DESTINATION_CHANNEL_EXPR = """
+select
+    case
+        when dest ilike '%dine%'     then 'In-Store'
+        when dest ilike '%drive%'    then 'Drive-Thru'
+        when dest ilike '%go%'       then 'Takeout'
+        when dest ilike '%delivery%' then 'Delivery'
+        when dest ilike '%cater%'    then 'Catering'
+        else                              'Other'
+    end as channel
+from (values (?)) t(dest)
+"""
+
+
+def _channel(dest: str) -> str:
+    con = duckdb.connect()
+    return con.execute(DESTINATION_CHANNEL_EXPR, [dest]).fetchone()[0]
+
+
+class TestDimDestinationChannel:
+    def test_dine_in_is_instore(self):
+        assert _channel("DINE IN") == "In-Store"
+
+    def test_drive_thru_is_drive_thru(self):
+        assert _channel("DRIVE THRU") == "Drive-Thru"
+
+    def test_to_go_is_takeout(self):
+        assert _channel("TO GO") == "Takeout"
+
+    def test_delivery_is_delivery(self):
+        assert _channel("DELIVERY") == "Delivery"
+
+    def test_catering_is_catering(self):
+        assert _channel("CATERING") == "Catering"
+
+    def test_unknown_is_other(self):
+        assert _channel("KIOSK") == "Other"
+
+    def test_unknown_row_always_present(self):
+        sql = """
+        select count(*) from (
+            select 0::bigint as destination_key, 'UNKNOWN' as destination_name, 'Unknown' as channel
+        ) where destination_name = 'UNKNOWN'
+        """
+        assert _scalar(sql) == 1
+
+
+# ---------------------------------------------------------------------------
+# dim_employee — numeric ID filtering
+# ---------------------------------------------------------------------------
+
+
+class TestDimEmployeeFilter:
+    def test_real_name_passes(self):
+        sql = "select 'JOHN DOE' !~ '^[0-9]+$'"
+        assert _scalar(sql) is True
+
+    def test_numeric_id_excluded(self):
+        sql = "select '673508831' !~ '^[0-9]+$'"
+        assert _scalar(sql) is False
+
+    def test_short_numeric_excluded(self):
+        sql = "select '12345' !~ '^[0-9]+$'"
+        assert _scalar(sql) is False
+
+    def test_alphanumeric_name_passes(self):
+        sql = "select 'CASHIER1' !~ '^[0-9]+$'"
+        assert _scalar(sql) is True

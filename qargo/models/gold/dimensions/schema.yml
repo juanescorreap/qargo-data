@@ -13,3 +13,29 @@ models:
       - name: date_key
         tests:
           - unique
+          - not_null
+
+  - name: dim_destination
+    columns:
+      - name: destination_key
+        tests:
+          - unique
+          - not_null
+      - name: destination_name
+        tests:
+          - unique
+          - not_null
+      - name: channel
+        tests:
+          - not_null
+
+  - name: dim_employee
+    columns:
+      - name: employee_key
+        tests:
+          - unique
+          - not_null
+      - name: employee_name
+        tests:
+          - unique
+          - not_null

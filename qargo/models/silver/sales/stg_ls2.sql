@@ -28,10 +28,14 @@ select
         else 'Other'
     end as revenue_center,
 
-    "FinalPrice" as net_sales,
-    "Account"    as order_id,
-    0.0          as tip_amount,
-    'ls2'        as _source_system
+    "FinalPrice"          as net_sales,
+    "Account"             as order_id,
+    0.0                   as tip_amount,
+    null::text            as destination,
+    upper(trim("Staff"))  as employee_name,
+    "TaxAmount"           as tax_amount,
+    "Discount"            as discount_total,
+    'ls2'                 as _source_system
 
 from {{ ref('bronze_ls2') }}
 where

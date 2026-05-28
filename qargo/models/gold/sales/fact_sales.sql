@@ -1,6 +1,6 @@
 {{ config(
     materialized='incremental',
-    unique_key=['date_key', 'store_key', 'product_key'],
+    unique_key=['date_key', 'store_key', 'product_key', 'destination_key'],
     on_schema_change='append_new_columns'
 ) }}
 
@@ -11,7 +11,10 @@ with orders as (
         revenue_center,
         net_sales,
         order_id,
-        tip_amount
+        tip_amount,
+        destination,
+        tax_amount,
+        discount_total
     from {{ ref('stg_orders') }}
     {% if is_incremental() %}
     where sale_date > (
@@ -26,23 +29,30 @@ joined as (
     select
         d.date_key,
         s.store_key,
+        coalesce(dest.destination_key, 0) as destination_key,
         p.product_key,
         o.net_sales,
         o.order_id,
-        o.tip_amount
+        o.tip_amount,
+        o.tax_amount,
+        o.discount_total
     from orders o
-    inner join {{ ref('dim_date') }}    d on o.sale_date      = d.date
-    inner join {{ ref('dim_store') }}   s on o.store_name     = s.store_name
-    left  join {{ ref('dim_product') }} p on o.revenue_center = p.revenue_center_name
+    inner join {{ ref('dim_date') }}        d    on o.sale_date                              = d.date
+    inner join {{ ref('dim_store') }}       s    on o.store_name                             = s.store_name
+    left  join {{ ref('dim_product') }}     p    on o.revenue_center                         = p.revenue_center_name
+    left  join {{ ref('dim_destination') }} dest on coalesce(o.destination, 'UNKNOWN')       = dest.destination_name
 )
 
 select
     date_key,
     store_key,
     product_key,
+    destination_key,
     sum(net_sales)                                                              as net_sales,
     count(distinct order_id)                                                    as order_count,
     sum(tip_amount)                                                             as tip_amount,
+    sum(tax_amount)                                                             as tax_amount,
+    sum(discount_total)                                                         as discount_total,
     round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)  as avg_ticket
 from joined
-group by date_key, store_key, product_key
+group by date_key, store_key, product_key, destination_key

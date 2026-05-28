@@ -23,10 +23,14 @@ select
         else 'Other'
     end as revenue_center,
 
-    "Net Sales"  as net_sales,
-    "Order ID"   as order_id,
-    0.0          as tip_amount,
-    'par2'       as _source_system
+    "Net Sales"      as net_sales,
+    "Order ID"       as order_id,
+    0.0              as tip_amount,
+    upper(trim("Destination"))  as destination,
+    "Employee Name"  as employee_name,
+    "Taxes"          as tax_amount,
+    "Discount Total" as discount_total,
+    'par2'           as _source_system
 
 from {{ ref('bronze_par2') }}
 where
