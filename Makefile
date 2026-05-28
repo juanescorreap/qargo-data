@@ -18,7 +18,7 @@ migrate:
 # to avoid the incremental watermark conflict between API and CSV sources.
 migrate-csv:
 	$(ENV) && source .venv/bin/activate && python ingestion/run.py --source par2
-	$(ENV) && $(DBT) run --full-refresh --select stg_par2 fact_sales
+	$(ENV) && $(DBT) run --full-refresh --select stg_par2 fact_sales fact_sales_by_employee
 
 migrate-full:
 	$(ENV) && source .venv/bin/activate && python ingestion/run.py --full-refresh
