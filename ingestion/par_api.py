@@ -151,11 +151,20 @@ def load_store_configs() -> list[StoreConfig]:
     configs: list[StoreConfig] = []
     default_endpoint = os.getenv("PAR_DEFAULT_ENDPOINT", "")
 
+    # Simple single-store setup: PAR_LOCATION_TOKEN + PAR_ENDPOINT (no suffix)
+    simple_token = os.getenv("PAR_LOCATION_TOKEN")
+    simple_endpoint = os.getenv("PAR_ENDPOINT")
+    if simple_token and simple_endpoint:
+        store_name = os.getenv("PAR_STORE_NAME", "DEFAULT")
+        configs.append(StoreConfig(store_name, simple_token, simple_endpoint))
+
+    # Sandbox: PAR_SANDBOX_LOCATION_TOKEN + PAR_SANDBOX_URL
     sandbox_token = os.getenv("PAR_SANDBOX_LOCATION_TOKEN")
     sandbox_url = os.getenv("PAR_SANDBOX_URL")
     if sandbox_token and sandbox_url:
         configs.append(StoreConfig("SANDBOX", sandbox_token, sandbox_url))
 
+    # Multi-store: PAR_LOCATION_TOKEN_{NAME} + PAR_ENDPOINT_{NAME}
     for key, val in os.environ.items():
         if not key.startswith("PAR_LOCATION_TOKEN_"):
             continue
