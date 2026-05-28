@@ -152,8 +152,8 @@ jobs:
           cat > /tmp/cors.json << 'EOF'
           [{"allowedOrigins":["*"],"allowedMethods":["GET","HEAD"],"allowedHeaders":["*"],"maxAgeSeconds":86400}]
           EOF
-          npx wrangler@3.112.0 r2 bucket cors put qargo-assets --rules-file /tmp/cors.json 2>&1 \
-            || echo "Warning: CORS setup failed — enable it manually in R2 bucket settings if WASM fails to load."
+          npx wrangler@3.112.0 r2 bucket cors set qargo-assets --rules-file /tmp/cors.json 2>&1 \
+            || echo "Warning: CORS setup skipped — configure once manually in the Cloudflare R2 dashboard."
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
