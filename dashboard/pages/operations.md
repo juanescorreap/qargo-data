@@ -104,16 +104,7 @@ order by d.year, d.month
 ```
 
 ```sql source_system_comparison
-select
-    o._source_system,
-    count(distinct o.order_id)                                                         as order_count,
-    round(sum(o.net_sales)::numeric, 2)                                                as net_sales,
-    round(sum(o.tax_amount)::numeric, 2)                                               as tax_amount,
-    round(sum(o.discount_total)::numeric, 2)                                           as discount_total,
-    count(case when o.destination is null then 1 end)                                  as null_destination,
-    count(case when o.employee_name is null then 1 end)                                as null_employee
-from silver.stg_orders o
-group by o._source_system
+select * from gold.source_summary
 ```
 
 ## Employee Productivity — This Month
