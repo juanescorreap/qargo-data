@@ -2,131 +2,176 @@
 title: '{params.store}'
 ---
 
-```sql this_month
+```sql store_kpis
 select
-    sum(f.net_sales)       as total_sales,
-    count(distinct d.date) as days_in_data
+    round(sum(f.net_sales)::numeric, 2)                                                     as net_sales_cm,
+    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)                  as avg_ticket_cm
 from gold.fact_sales f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where date_trunc('month', d.date) = (
-    select date_trunc('month', max(d2.date))
-    from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
-)
-and s.store_name = '${params.store}'
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and s.store_name = '${params.store}'
 ```
 
-```sql projected
+```sql store_kpi_ytd
 select
-    round(
-        (sum(f.net_sales) / nullif(count(distinct d.date), 0) * 30)::numeric,
-    2) as projected_sales
+    round(sum(f.net_sales)::numeric, 2) as net_sales_ytd
 from gold.fact_sales f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where date_trunc('month', d.date) = (
-    select date_trunc('month', max(d2.date))
-    from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
-)
-and s.store_name = '${params.store}'
+where d.year = extract(year from current_date)::int
+  and s.store_name = '${params.store}'
 ```
 
-```sql yoy
-with ref as (
-    select date_trunc('month', max(d.date)) as cur_month
-    from gold.dim_date d
-    join gold.fact_sales f on d.date_key = f.date_key
-)
-select
-    sum(case when date_trunc('month', d.date) = r.cur_month
-             then f.net_sales else 0 end)                         as current_sales,
-    sum(case when date_trunc('month', d.date) = r.cur_month - interval '1 year'
-             then f.net_sales else 0 end)                         as prior_year_sales,
-    case
-        when sum(case when date_trunc('month', d.date) = r.cur_month - interval '1 year'
-                      then f.net_sales else 0 end) = 0 then null
-        else round((
-            (sum(case when date_trunc('month', d.date) = r.cur_month then f.net_sales else 0 end) -
-             sum(case when date_trunc('month', d.date) = r.cur_month - interval '1 year' then f.net_sales else 0 end))
-            / sum(case when date_trunc('month', d.date) = r.cur_month - interval '1 year' then f.net_sales else 0 end)
-        )::numeric * 100, 1)
-    end                                                            as yoy_pct
-from gold.fact_sales f
-join gold.dim_date  d on f.date_key  = d.date_key
-join gold.dim_store s on f.store_key = s.store_key
-cross join ref r
-where s.store_name = '${params.store}'
-```
+<BigValue data={store_kpis}    value=net_sales_cm  title="Net Sales, This Month" fmt=usd />
+<BigValue data={store_kpis}    value=avg_ticket_cm title="Avg Ticket, This Month" fmt=usd />
+<BigValue data={store_kpi_ytd} value=net_sales_ytd title="Net Sales, YTD"         fmt=usd />
 
-```sql monthly_overlay
-with ref as (
-    select date_trunc('month', max(d.date)) as cur_month
-    from gold.dim_date d
-    join gold.fact_sales f on d.date_key = f.date_key
-)
-select
-    extract(day from d.date)::int as day_of_month,
-    sum(case when date_trunc('month', d.date) = r.cur_month
-             then f.net_sales else 0 end) as this_month,
-    sum(case when date_trunc('month', d.date) = r.cur_month - interval '1 month'
-             then f.net_sales else 0 end) as last_month
-from gold.fact_sales f
-join gold.dim_date  d on f.date_key  = d.date_key
-join gold.dim_store s on f.store_key = s.store_key
-cross join ref r
-where s.store_name = '${params.store}'
-  and (
-      date_trunc('month', d.date) = r.cur_month
-      or date_trunc('month', d.date) = r.cur_month - interval '1 month'
-  )
-group by extract(day from d.date)
-order by day_of_month
-```
+---
 
-```sql daily_breakdown
+```sql last_7_days
 select
     d.date,
-    round(sum(case when p.revenue_center_name = 'Beverage' then f.net_sales else 0 end)::numeric, 2) as beverage,
-    round(sum(case when p.revenue_center_name = 'Food'     then f.net_sales else 0 end)::numeric, 2) as food,
-    round(sum(case when p.revenue_center_name = 'Retail'   then f.net_sales else 0 end)::numeric, 2) as retail,
-    round(sum(f.net_sales)::numeric, 2)                                                               as total,
-    sum(f.order_count)                                                                                as orders,
-    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)                            as avg_ticket
+    round(sum(f.net_sales)::numeric, 2) as net_sales,
+    sum(f.order_count)                  as order_count
 from gold.fact_sales f
-join gold.dim_date    d on f.date_key    = d.date_key
-join gold.dim_store   s on f.store_key   = s.store_key
-left join gold.dim_product p on f.product_key = p.product_key
-where date_trunc('month', d.date) = (
-    select date_trunc('month', max(d2.date))
+join gold.dim_date  d on f.date_key  = d.date_key
+join gold.dim_store s on f.store_key = s.store_key
+where d.date >= (
+    select max(d2.date) - interval '6 days'
     from gold.dim_date d2
     join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.dim_store  s2 on f2.store_key = s2.store_key
+    where s2.store_name = '${params.store}'
 )
-and s.store_name = '${params.store}'
+  and s.store_name = '${params.store}'
 group by d.date
 order by d.date
 ```
 
-```sql channel_this_month
+## Last 7 Days
+
+<LineChart
+    data={last_7_days}
+    x=date
+    y=net_sales
+    title="Daily Net Sales, L-7D"
+    yFmt=usd
+/>
+
+---
+
+```sql dow_heatmap
+select
+    d.day_name                                                    as day_of_week,
+    d.day_of_week                                                 as dow_num,
+    d.month_name                                                  as month_name,
+    d.month                                                       as month_num,
+    d.year                                                        as year,
+    d.year || ' ' || d.month_name                                 as period,
+    round(avg(daily.net_sales)::numeric, 2)                      as avg_daily_sales,
+    round(avg(daily.order_count)::numeric, 1)                    as avg_orders
+from (
+    select
+        f.date_key,
+        sum(f.net_sales)   as net_sales,
+        sum(f.order_count) as order_count
+    from gold.fact_sales f
+    join gold.dim_store  s on f.store_key = s.store_key
+    where s.store_name = '${params.store}'
+    group by f.date_key
+) daily
+join gold.dim_date d on daily.date_key = d.date_key
+where d.date >= current_date - interval '1 year'
+group by d.day_name, d.day_of_week, d.month_name, d.month, d.year
+order by d.year, d.month, d.day_of_week
+```
+
+## Sales Heatmap by Day of Week & Month (L-12M)
+
+<Heatmap
+    data={dow_heatmap}
+    x=day_of_week
+    y=period
+    value=avg_daily_sales
+    xSort=dow_num
+    title="Avg Daily Sales — Day of Week × Month"
+    valueFmt=usd
+    borders=true
+/>
+
+---
+
+```sql category_mix
+select
+    p.revenue_center_name,
+    round(sum(f.net_sales)::numeric, 2)                                                       as net_sales,
+    round(sum(f.net_sales) / sum(sum(f.net_sales)) over () * 100, 1)                          as pct_of_total
+from gold.fact_sales f
+join gold.dim_store   s on f.store_key   = s.store_key
+join gold.dim_product p on f.product_key = p.product_key
+join gold.dim_date    d on f.date_key    = d.date_key
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and s.store_name = '${params.store}'
+  and p.revenue_center_name in ('Beverage','Food','Retail')
+group by p.revenue_center_name
+order by net_sales desc
+```
+
+## Category Mix — This Month
+
+<BarChart
+    data={category_mix}
+    x=revenue_center_name
+    y=pct_of_total
+    title="Beverage vs Food vs Retail (% of Sales)"
+    labels=true
+/>
+
+<DataTable data={category_mix}>
+    <Column id=revenue_center_name title="Category"        />
+    <Column id=net_sales           title="Net Sales" fmt=usd />
+    <Column id=pct_of_total        title="% of Total"      />
+</DataTable>
+
+---
+
+```sql channels_this_store
 select
     dest.channel,
-    round(sum(f.net_sales)::numeric, 2) as net_sales,
-    sum(f.order_count)                  as order_count
+    round(sum(f.net_sales)::numeric, 2)  as net_sales,
+    sum(f.order_count)                   as order_count,
+    round(avg(f.avg_ticket)::numeric, 2) as avg_ticket
 from gold.fact_sales f
 join gold.dim_store       s    on f.store_key       = s.store_key
-join gold.dim_date        d    on f.date_key        = d.date_key
 join gold.dim_destination dest on f.destination_key = dest.destination_key
-where date_trunc('month', d.date) = (
-    select date_trunc('month', max(d2.date))
-    from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
-)
-and s.store_name  = '${params.store}'
-and dest.channel <> 'Unknown'
+join gold.dim_date        d    on f.date_key        = d.date_key
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and s.store_name = '${params.store}'
+  and dest.channel <> 'Unknown'
 group by dest.channel
 order by net_sales desc
 ```
+
+## Top Channels — This Month
+
+<BarChart
+    data={channels_this_store}
+    x=channel
+    y=net_sales
+    title="Net Sales by Channel"
+    yFmt=usd
+    sort=true
+/>
+
+<DataTable data={channels_this_store}>
+    <Column id=channel     title="Channel"           />
+    <Column id=net_sales   title="Net Sales" fmt=usd />
+    <Column id=order_count title="Orders"            />
+    <Column id=avg_ticket  title="Avg Ticket" fmt=usd />
+</DataTable>
+
+---
 
 ```sql top_employees_store
 select
@@ -138,44 +183,19 @@ from gold.fact_sales_by_employee f
 join gold.dim_store    s on f.store_key    = s.store_key
 join gold.dim_employee e on f.employee_key = e.employee_key
 join gold.dim_date     d on f.date_key     = d.date_key
-where date_trunc('month', d.date) = (
-    select date_trunc('month', max(d2.date))
-    from gold.dim_date d2
-    join gold.fact_sales_by_employee f2 on d2.date_key = f2.date_key
-)
-and s.store_name    = '${params.store}'
-and e.employee_name <> 'UNKNOWN'
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and s.store_name    = '${params.store}'
+  and e.employee_name <> 'UNKNOWN'
 group by e.employee_name
 order by net_sales desc
 limit 15
 ```
 
-<BigValue data={this_month}    value=total_sales       title="Sales, This Month"          fmt=usd />
-<BigValue data={projected}     value=projected_sales   title="Projected Month-End"         fmt=usd />
-<BigValue data={yoy}           value=yoy_pct           title="vs Same Month Last Year"     fmt=num1 />
+## Top Employees — This Month
 
-## This Month vs Last Month
-
-<LineChart
-    data={monthly_overlay}
-    x=day_of_month
-    y={["this_month","last_month"]}
-    title="Daily Sales, Month over Month"
-/>
-
-## Daily Breakdown
-
-<DataTable data={daily_breakdown} />
-
-## Sales by Channel, This Month
-
-<BarChart
-    data={channel_this_month}
-    x=channel
-    y=net_sales
-    title="Net Sales by Channel"
-/>
-
-## Top Employees, This Month
-
-<DataTable data={top_employees_store} />
+<DataTable data={top_employees_store}>
+    <Column id=employee_name title="Employee"           />
+    <Column id=net_sales     title="Net Sales" fmt=usd  />
+    <Column id=order_count   title="Orders"             />
+    <Column id=avg_ticket    title="Avg Ticket" fmt=usd />
+</DataTable>

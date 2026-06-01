@@ -18,6 +18,11 @@ models:
       - name: order_id
         tests:
           - not_null
+      - name: product_name
+      - name: product_canonical_name
+        tests:
+          - not_null:
+              where: "revenue_center != 'Other'"
 
   - name: stg_ls2
     columns:
@@ -36,3 +41,8 @@ models:
       - name: order_id
         tests:
           - not_null
+      - name: product_name
+      - name: product_canonical_name
+        tests:
+          - not_null:
+              where: "revenue_center != 'Other'"

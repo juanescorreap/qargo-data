@@ -110,6 +110,9 @@ jobs:
           PAR_ENDPOINT: ${{ secrets.PAR_ENDPOINT }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
+      - name: dbt seed
+        run: dbt seed --project-dir qargo --profiles-dir ~/.dbt
+
       - name: dbt run
         run: dbt run --project-dir qargo --profiles-dir ~/.dbt
 

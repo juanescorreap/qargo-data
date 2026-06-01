@@ -23,3 +23,10 @@ migrate-csv:
 migrate-full:
 	$(ENV) && source .venv/bin/activate && python ingestion/run.py --full-refresh
 	$(ENV) && $(DBT) run --full-refresh
+
+# First-time deploy after adding product_name / product_canonical_name.
+# Rebuilds only the affected incremental models; table models refresh automatically.
+migrate-product-granularity:
+	$(ENV) && $(DBT) seed
+	$(ENV) && $(DBT) run --full-refresh --select stg_par2 stg_ls2 stg_orders dim_product dim_campaign fact_sales
+	$(ENV) && $(DBT) test

@@ -39,3 +39,31 @@ models:
         tests:
           - unique
           - not_null
+
+  - name: dim_product
+    columns:
+      - name: product_key
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        tests:
+          - unique
+          - not_null
+      - name: product_canonical_name
+        tests:
+          - not_null
+      - name: revenue_center_name
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Beverage', 'Food', 'Retail', 'Other']
+
+  - name: dim_campaign
+    columns:
+      - name: campaign_key
+        tests:
+          - not_null
+      - name: campaign_name
+        tests:
+          - not_null

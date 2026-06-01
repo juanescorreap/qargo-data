@@ -35,6 +35,8 @@ select
     upper(trim("Staff"))  as employee_name,
     "TaxAmount"           as tax_amount,
     "Discount"            as discount_total,
+    upper(trim("Item"))   as product_name,
+    regexp_replace(upper(trim("Item")), '\s*\(\s*[0-9]+\s*OZ\s*\)\s*[A-Z]{0,3}\s*$', '') as product_canonical_name,
     'ls2'                 as _source_system
 
 from {{ ref('bronze_ls2') }}

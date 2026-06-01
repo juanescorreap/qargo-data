@@ -30,6 +30,8 @@ select
     "Employee Name"  as employee_name,
     "Taxes"          as tax_amount,
     "Discount Total" as discount_total,
+    upper(trim("Item Name"))                                         as product_name,
+    regexp_replace(upper(trim("Item Name")), '^[0-9]+\s*OZ\s+', '') as product_canonical_name,
     'par2'           as _source_system
 
 from {{ ref('bronze_par2') }}

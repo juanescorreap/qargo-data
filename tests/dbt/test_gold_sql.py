@@ -209,14 +209,47 @@ class TestDimStoreRoyaltyRates:
 
 
 # ---------------------------------------------------------------------------
-# dim_product
+# dim_product  (derived from source data, not hardcoded)
 # ---------------------------------------------------------------------------
+# dim_product now has one row per unique product_name from raw_par2 / raw_ls2,
+# plus an UNKNOWN fallback row (key = 0).  We test the structural invariants
+# using synthetic source-data rows that exercise both PAR and LS2 paths.
 
 DIM_PRODUCT_SQL = """
-select 1 as product_key, 'Beverage' as revenue_center_name
-union all select 2,       'Food'
-union all select 3,       'Retail'
-union all select 4,       'Other'
+with par_products as (
+    select * from (values
+        ('16 OZ ICED LATTE',    regexp_replace('16 OZ ICED LATTE',    '^[0-9]+\\s*OZ\\s+', ''), 'Beverage'),
+        ('20 OZ ICED LATTE',    regexp_replace('20 OZ ICED LATTE',    '^[0-9]+\\s*OZ\\s+', ''), 'Beverage'),
+        ('QARGO CLASSIC',       regexp_replace('QARGO CLASSIC',       '^[0-9]+\\s*OZ\\s+', ''), 'Food'),
+        ('4 OZ ESPRESSO',       regexp_replace('4 OZ ESPRESSO',       '^[0-9]+\\s*OZ\\s+', ''), 'Beverage'),
+        ('ALMOND CROISSANT',    regexp_replace('ALMOND CROISSANT',    '^[0-9]+\\s*OZ\\s+', ''), 'Food')
+    ) t(product_name, product_canonical_name, revenue_center_name)
+),
+ls2_products as (
+    select * from (values
+        ('ICED LATTE (16 OZ) M', regexp_replace('ICED LATTE (16 OZ) M','\\s*\\(\\s*[0-9]+\\s*OZ\\s*\\)\\s*[A-Za-z]{0,3}\\s*$',''), 'Beverage'),
+        ('QARGO CLASSIC',        regexp_replace('QARGO CLASSIC',       '\\s*\\(\\s*[0-9]+\\s*OZ\\s*\\)\\s*[A-Za-z]{0,3}\\s*$',''), 'Food'),
+        ('ALMOND CROISSANT',     regexp_replace('ALMOND CROISSANT',    '\\s*\\(\\s*[0-9]+\\s*OZ\\s*\\)\\s*[A-Za-z]{0,3}\\s*$',''), 'Food'),
+        ('ESPRESSO (4OZ)',        regexp_replace('ESPRESSO (4OZ)',      '\\s*\\(\\s*[0-9]+\\s*OZ\\s*\\)\\s*[A-Za-z]{0,3}\\s*$',''), 'Beverage')
+    ) t(product_name, product_canonical_name, revenue_center_name)
+),
+combined as (
+    select product_name, product_canonical_name, revenue_center_name from par_products
+    union
+    select product_name, product_canonical_name, revenue_center_name from ls2_products
+),
+with_key as (
+    select
+        abs(hash(product_name)) as product_key,
+        product_name,
+        product_canonical_name,
+        revenue_center_name
+    from combined
+    where product_name is not null and trim(product_name) <> ''
+)
+select * from with_key
+union all
+select 0, 'UNKNOWN', 'UNKNOWN', 'Other'
 """
 
 
@@ -227,26 +260,55 @@ def dim_product():
 
 
 class TestDimProduct:
-    def test_exactly_four_rows(self, dim_product):
-        assert len(dim_product) == 4
-
-    def test_all_four_revenue_centers_present(self, dim_product):
-        expected = {"Beverage", "Food", "Retail", "Other"}
-        actual = set(dim_product["revenue_center_name"].tolist())
-        assert actual == expected
-
-    def test_product_keys_are_1_to_4(self, dim_product):
-        assert set(dim_product["product_key"].tolist()) == {1, 2, 3, 4}
-
     def test_product_keys_unique(self, dim_product):
-        assert dim_product["product_key"].nunique() == 4
+        assert dim_product["product_key"].nunique() == len(dim_product)
 
-    def test_revenue_center_names_unique(self, dim_product):
-        assert dim_product["revenue_center_name"].nunique() == 4
+    def test_product_names_unique(self, dim_product):
+        assert dim_product["product_name"].nunique() == len(dim_product)
 
-    def test_beverage_has_key_1(self, dim_product):
-        row = dim_product[dim_product["revenue_center_name"] == "Beverage"]
-        assert int(row.iloc[0]["product_key"]) == 1
+    def test_no_null_product_name(self, dim_product):
+        assert dim_product["product_name"].notna().all()
+
+    def test_no_null_product_canonical_name(self, dim_product):
+        assert dim_product["product_canonical_name"].notna().all()
+
+    def test_revenue_center_only_valid_values(self, dim_product):
+        valid = {"Beverage", "Food", "Retail", "Other"}
+        actual = set(dim_product["revenue_center_name"].tolist())
+        assert actual.issubset(valid)
+
+    def test_all_revenue_centers_represented(self, dim_product):
+        # Beverage, Food, Other (from UNKNOWN row) must all be present
+        actual = set(dim_product["revenue_center_name"].tolist())
+        assert {"Beverage", "Food", "Other"}.issubset(actual)
+
+    def test_unknown_row_present_with_key_zero(self, dim_product):
+        unknown = dim_product[dim_product["product_name"] == "UNKNOWN"]
+        assert len(unknown) == 1
+        assert int(unknown.iloc[0]["product_key"]) == 0
+
+    def test_cross_system_deduplication(self, dim_product):
+        # QARGO CLASSIC and ALMOND CROISSANT exist in both systems → one row each
+        for name in ["QARGO CLASSIC", "ALMOND CROISSANT"]:
+            rows = dim_product[dim_product["product_name"] == name]
+            assert len(rows) == 1, f"Duplicate found for {name}"
+
+    def test_par_size_variants_have_same_canonical(self, dim_product):
+        r16 = dim_product[dim_product["product_name"] == "16 OZ ICED LATTE"].iloc[0]
+        r20 = dim_product[dim_product["product_name"] == "20 OZ ICED LATTE"].iloc[0]
+        assert r16["product_canonical_name"] == r20["product_canonical_name"] == "ICED LATTE"
+
+    def test_ls2_size_variant_canonical_matches_par_base(self, dim_product):
+        ls2_row = dim_product[dim_product["product_name"] == "ICED LATTE (16 OZ) M"].iloc[0]
+        assert ls2_row["product_canonical_name"] == "ICED LATTE"
+
+    def test_espresso_canonical_stripped(self, dim_product):
+        row = dim_product[dim_product["product_name"] == "4 OZ ESPRESSO"].iloc[0]
+        assert row["product_canonical_name"] == "ESPRESSO"
+
+    def test_food_item_canonical_equals_name(self, dim_product):
+        row = dim_product[dim_product["product_name"] == "QARGO CLASSIC"].iloc[0]
+        assert row["product_canonical_name"] == "QARGO CLASSIC"
 
 
 # ---------------------------------------------------------------------------
@@ -255,16 +317,16 @@ class TestDimProduct:
 
 
 FACT_SALES_LOGIC_SQL = """
--- Minimal stub of the fact_sales aggregation logic
+-- Minimal stub of the fact_sales aggregation logic (product_name grain)
 with orders as (
     select * from (values
-        -- sale_date, store_name, revenue_center, net_sales, order_id, tip_amount, destination, tax_amount, discount_total
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 10.00, 'A001', 0.0, 'DINE IN', 0.80, 0.00),
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage', 15.00, 'A002', 1.0, 'DINE IN', 1.20, 0.50),
-        ('2025-01-01'::date, 'BERKELEY', 'Beverage',  5.00, 'A001', 0.0, 'DINE IN', 0.40, 0.00),
-        ('2025-01-02'::date, 'BERKELEY', 'Food',      8.00, 'A003', 0.5, 'TO GO',   0.64, 0.00)
-    ) t(sale_date, store_name, revenue_center, net_sales, order_id, tip_amount,
-        destination, tax_amount, discount_total)
+        -- sale_date, store_name, net_sales, order_id, tip, destination, tax, discount, product_name
+        (DATE '2025-01-01', 'BERKELEY', 10.00, 'A001', 0.0, 'DINE IN', 0.80, 0.00, '16 OZ ICED LATTE'),
+        (DATE '2025-01-01', 'BERKELEY', 15.00, 'A002', 1.0, 'DINE IN', 1.20, 0.50, '16 OZ ICED LATTE'),
+        (DATE '2025-01-01', 'BERKELEY',  5.00, 'A001', 0.0, 'DINE IN', 0.40, 0.00, '16 OZ ICED LATTE'),
+        (DATE '2025-01-02', 'BERKELEY',  8.00, 'A003', 0.5, 'TO GO',   0.64, 0.00, 'QARGO CLASSIC')
+    ) t(sale_date, store_name, net_sales, order_id, tip_amount,
+        destination, tax_amount, discount_total, product_name)
 ),
 dim_date as (
     select
@@ -276,10 +338,9 @@ dim_store as (
     select 9001 as store_key, 'BERKELEY' as store_name
 ),
 dim_product as (
-    select 1 as product_key, 'Beverage' as revenue_center_name
-    union all select 2, 'Food'
-    union all select 3, 'Retail'
-    union all select 4, 'Other'
+    select 1 as product_key, '16 OZ ICED LATTE' as product_name, 'ICED LATTE' as product_canonical_name, 'Beverage' as revenue_center_name
+    union all select 2, 'QARGO CLASSIC', 'QARGO CLASSIC', 'Food'
+    union all select 0, 'UNKNOWN',       'UNKNOWN',        'Other'
 ),
 dim_destination as (
     select 1001::bigint as destination_key, 'DINE IN' as destination_name
@@ -291,7 +352,7 @@ joined as (
         d.date_key,
         s.store_key,
         coalesce(dest.destination_key, 0) as destination_key,
-        p.product_key,
+        coalesce(p.product_key, 0)        as product_key,
         o.net_sales,
         o.order_id,
         o.tip_amount,
@@ -300,7 +361,7 @@ joined as (
     from orders o
     inner join dim_date        d    on o.sale_date                           = d.date
     inner join dim_store       s    on o.store_name                          = s.store_name
-    left  join dim_product     p    on o.revenue_center                      = p.revenue_center_name
+    left  join dim_product     p    on upper(trim(o.product_name))           = p.product_name
     left  join dim_destination dest on coalesce(o.destination, 'UNKNOWN')   = dest.destination_name
 )
 select
@@ -328,21 +389,21 @@ def fact_sales():
 
 class TestFactSalesAggregation:
     def test_two_rows_output(self, fact_sales):
-        # Jan 1 Beverage + Jan 2 Food
+        # Jan 1 16 OZ ICED LATTE + Jan 2 QARGO CLASSIC
         assert len(fact_sales) == 2
 
     def test_net_sales_summed_correctly(self, fact_sales):
-        # Jan 1 Beverage: 10 + 15 + 5 = 30
+        # Jan 1: 10 + 15 + 5 = 30 (all three rows are 16 OZ ICED LATTE)
         bev_row = fact_sales[fact_sales["product_key"] == 1].iloc[0]
         assert float(bev_row["net_sales"]) == pytest.approx(30.0)
 
     def test_order_count_is_distinct_orders(self, fact_sales):
-        # Jan 1 Beverage: A001, A002 → 2 distinct orders (A001 appears twice but counted once)
+        # Jan 1: A001 (x2) + A002 → 2 distinct orders
         bev_row = fact_sales[fact_sales["product_key"] == 1].iloc[0]
         assert int(bev_row["order_count"]) == 2
 
     def test_avg_ticket_calculated(self, fact_sales):
-        # Jan 1 Beverage: 30 / 2 = 15.00
+        # Jan 1: 30 / 2 = 15.00
         bev_row = fact_sales[fact_sales["product_key"] == 1].iloc[0]
         assert float(bev_row["avg_ticket"]) == pytest.approx(15.0)
 
@@ -380,17 +441,17 @@ class TestFactSalesJoinBehavior:
         """
         assert _scalar(sql) == 0
 
-    def test_null_product_key_when_revenue_center_unmatched(self):
+    def test_null_product_key_when_product_name_unmatched(self):
         sql = """
         with orders as (
-            select 'WEIRD CATEGORY' as revenue_center, 5.0 as net_sales
+            select 'SOME UNKNOWN ITEM' as product_name, 5.0 as net_sales
         ),
         dim_product as (
-            select 1 as product_key, 'Beverage' as revenue_center_name
+            select 1 as product_key, '16 OZ ICED LATTE' as product_name
         )
         select p.product_key
         from orders o
-        left join dim_product p on o.revenue_center = p.revenue_center_name
+        left join dim_product p on upper(trim(o.product_name)) = p.product_name
         """
         result = _run(sql)
         assert result[0][0] is None

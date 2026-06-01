@@ -14,7 +14,8 @@ with orders as (
         tip_amount,
         destination,
         tax_amount,
-        discount_total
+        discount_total,
+        product_name
     from {{ ref('stg_orders') }}
     {% if is_incremental() %}
     where sale_date > (
@@ -30,7 +31,7 @@ joined as (
         d.date_key,
         s.store_key,
         coalesce(dest.destination_key, 0) as destination_key,
-        p.product_key,
+        coalesce(p.product_key, 0) as product_key,
         o.net_sales,
         o.order_id,
         o.tip_amount,
@@ -39,7 +40,7 @@ joined as (
     from orders o
     inner join {{ ref('dim_date') }}        d    on o.sale_date                              = d.date
     inner join {{ ref('dim_store') }}       s    on o.store_name                             = s.store_name
-    left  join {{ ref('dim_product') }}     p    on o.revenue_center                         = p.revenue_center_name
+    left  join {{ ref('dim_product') }}     p    on upper(trim(o.product_name))              = p.product_name
     left  join {{ ref('dim_destination') }} dest on coalesce(o.destination, 'UNKNOWN')       = dest.destination_name
 )
 
