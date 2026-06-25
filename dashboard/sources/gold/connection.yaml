@@ -8,3 +8,4 @@ options:
   password: ${SUPABASE_PASSWORD}
   ssl:
     rejectUnauthorized: true
+    ca: ${SUPABASE_SSL_CA}
