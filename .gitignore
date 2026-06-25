@@ -1,6 +1,7 @@
 .env
 .venv/
 data/
+logs/
 __pycache__/
 *.pyc
 *.Zone.Identifier
