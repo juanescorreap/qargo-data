@@ -7,4 +7,4 @@ options:
   user: ${SUPABASE_USER}
   password: ${SUPABASE_PASSWORD}
   ssl:
-    rejectUnauthorized: false
+    rejectUnauthorized: true

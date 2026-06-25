@@ -135,7 +135,7 @@ jobs:
                   'database': os.environ['SUPABASE_DBNAME'],
                   'user': os.environ['SUPABASE_USER'],
                   'password': os.environ['SUPABASE_PASSWORD'],
-                  'ssl': {'rejectUnauthorized': False},
+                  'ssl': {'rejectUnauthorized': True},
               },
           }
           dest = pathlib.Path('dashboard/sources/gold/connection.yaml')

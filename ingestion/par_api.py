@@ -67,7 +67,7 @@ class PARSoapClient:
         }
 
     async def _call(self, action: str, body: str) -> ET.Element:
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             resp = await client.post(
                 self.endpoint,
                 content=self._envelope(body),
