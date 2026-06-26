@@ -8,9 +8,9 @@ select
     d.month,
     d.month_name,
     d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
-    round(sum(f.net_sales)::numeric, 2)          as net_sales,
+    round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 group by d.year, d.month, d.month_name
 order by d.year, d.month
@@ -23,9 +23,9 @@ with monthly as (
         d.month,
         d.month_name,
         d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
-        round(sum(f.net_sales)::numeric, 2)           as net_sales,
+        round(sum(f.order_net_sales)::numeric, 2)     as net_sales,
         sum(f.order_count)                            as order_count
-    from gold.fact_sales f
+    from gold.fact_order f
     join gold.dim_date d on f.date_key = d.date_key
     group by d.year, d.month, d.month_name
 ),
@@ -53,9 +53,9 @@ select
     d.month,
     d.month_name,
     cast(d.year as text)                         as year,
-    round(sum(f.net_sales)::numeric, 2)          as net_sales,
+    round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 where d.year in (2024, 2025, 2026)
 group by d.year, d.month, d.month_name
@@ -66,9 +66,9 @@ order by d.month, d.year
 with daily as (
     select
         f.date_key,
-        sum(f.net_sales)                                                       as net_sales,
+        sum(f.order_net_sales)                                                 as net_sales,
         sum(f.order_count)                                                     as order_count
-    from gold.fact_sales f
+    from gold.fact_order f
     group by f.date_key
 )
 select
@@ -87,9 +87,9 @@ order by d.day_of_week
 with daily as (
     select
         f.date_key,
-        sum(f.net_sales)   as net_sales,
-        sum(f.order_count) as order_count
-    from gold.fact_sales f
+        sum(f.order_net_sales) as net_sales,
+        sum(f.order_count)     as order_count
+    from gold.fact_order f
     group by f.date_key
 )
 select
@@ -108,10 +108,10 @@ select
     d.year,
     d.quarter,
     d.year || ' Q' || d.quarter                 as period,
-    round(sum(f.net_sales)::numeric, 2)          as net_sales,
+    round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count,
-    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2) as avg_ticket
-from gold.fact_sales f
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2) as avg_ticket
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 group by d.year, d.quarter
 order by d.year, d.quarter

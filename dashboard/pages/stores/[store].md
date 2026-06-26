@@ -3,10 +3,11 @@ title: '{params.store}'
 ---
 
 ```sql store_kpis
+-- C1 cutover: avg_ticket from fact_order (additive order count)
 select
-    round(sum(f.net_sales)::numeric, 2)                                                     as net_sales_cm,
-    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)                  as avg_ticket_cm
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2)                                               as net_sales_cm,
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)             as avg_ticket_cm
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where date_trunc('month', d.date) = date_trunc('month', current_date)
@@ -32,15 +33,15 @@ where d.year = extract(year from current_date)::int
 ```sql last_7_days
 select
     d.date,
-    round(sum(f.net_sales)::numeric, 2) as net_sales,
-    sum(f.order_count)                  as order_count
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2) as net_sales,
+    sum(f.order_count)                        as order_count
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.date >= (
     select max(d2.date) - interval '6 days'
     from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.fact_order f2 on d2.date_key = f2.date_key
     join gold.dim_store  s2 on f2.store_key = s2.store_key
     where s2.store_name = '${params.store}'
 )
@@ -74,9 +75,9 @@ select
 from (
     select
         f.date_key,
-        sum(f.net_sales)   as net_sales,
-        sum(f.order_count) as order_count
-    from gold.fact_sales f
+        sum(f.order_net_sales) as net_sales,
+        sum(f.order_count)     as order_count
+    from gold.fact_order f
     join gold.dim_store  s on f.store_key = s.store_key
     where s.store_name = '${params.store}'
     group by f.date_key
@@ -137,12 +138,13 @@ order by net_sales desc
 ---
 
 ```sql channels_this_store
+-- C1 cutover: fact_order (order count + avg_ticket by channel for this store)
 select
     dest.channel,
-    round(sum(f.net_sales)::numeric, 2)  as net_sales,
-    sum(f.order_count)                   as order_count,
-    round(avg(f.avg_ticket)::numeric, 2) as avg_ticket
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2)                                    as net_sales,
+    sum(f.order_count)                                                           as order_count,
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)  as avg_ticket
+from gold.fact_order f
 join gold.dim_store       s    on f.store_key       = s.store_key
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date        d    on f.date_key        = d.date_key

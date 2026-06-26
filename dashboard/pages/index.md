@@ -19,11 +19,13 @@ order by sort_order, store_name
 />
 
 ```sql kpi_current_month
+-- C1 cutover: order_count + avg_ticket from fact_order (additive). net_sales here is
+-- order-level (sums identically to fact_sales.net_sales).
 select
-    sum(f.net_sales)                                                                    as net_sales,
+    sum(f.order_net_sales)                                                              as net_sales,
     sum(f.order_count)                                                                  as order_count,
-    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)              as avg_ticket
-from gold.fact_sales f
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)        as avg_ticket
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where date_trunc('month', d.date) = date_trunc('month', current_date)
@@ -35,11 +37,12 @@ where date_trunc('month', d.date) = date_trunc('month', current_date)
 ```
 
 ```sql kpi_ytd
+-- C1 cutover: fact_order (additive order_count + avg_ticket)
 select
-    sum(f.net_sales)                                                                    as net_sales_ytd,
+    sum(f.order_net_sales)                                                              as net_sales_ytd,
     sum(f.order_count)                                                                  as order_count_ytd,
-    round((sum(f.net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)              as avg_ticket_ytd
-from gold.fact_sales f
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)        as avg_ticket_ytd
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int

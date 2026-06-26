@@ -3,19 +3,21 @@ title: Channels & Destinations
 ---
 
 ```sql channel_comparison
+-- C1 cutover: order_count + avg_ticket from fact_order (has destination_key). avg_ticket
+-- recomputed as net/orders (the old avg(avg_ticket) was itself a grain-average artifact).
 select
     dest.channel,
-    round(sum(f.net_sales)::numeric, 2)                                         as net_sales,
-    sum(f.order_count)                                                           as order_count,
-    round(avg(f.avg_ticket)::numeric, 2)                                         as avg_ticket,
-    round((sum(f.net_sales) / sum(sum(f.net_sales)) over () * 100)::numeric, 1) as pct_of_total
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2)                                              as net_sales,
+    sum(f.order_count)                                                                     as order_count,
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)            as avg_ticket,
+    round((sum(f.order_net_sales) / sum(sum(f.order_net_sales)) over () * 100)::numeric, 1) as pct_of_total
+from gold.fact_order f
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date         d   on f.date_key        = d.date_key
 where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.fact_order f2 on d2.date_key = f2.date_key
 )
   and dest.channel <> 'Unknown'
 group by dest.channel
@@ -84,12 +86,13 @@ order by d.year, d.month
 ---
 
 ```sql drivethu_monthly
+-- C1 cutover: fact_order (order count + avg_ticket by channel/month)
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')        as year_month,
-    round(sum(f.net_sales)::numeric, 2)                  as net_sales,
-    sum(f.order_count)                                   as order_count,
-    round(avg(f.avg_ticket)::numeric, 2)                 as avg_ticket
-from gold.fact_sales f
+    d.year || '-' || lpad(d.month::text, 2, '0')                                 as year_month,
+    round(sum(f.order_net_sales)::numeric, 2)                                    as net_sales,
+    sum(f.order_count)                                                           as order_count,
+    round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)  as avg_ticket
+from gold.fact_order f
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date         d   on f.date_key        = d.date_key
 where dest.channel = 'Drive-Thru'
@@ -135,7 +138,7 @@ select
         sum(case when dest.destination_key = 0 then f.order_count else 0 end)::numeric
         / nullif(sum(f.order_count), 0) * 100, 1
     )                                                                                                as unknown_pct
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date         d   on f.date_key        = d.date_key
 group by d.year, d.month

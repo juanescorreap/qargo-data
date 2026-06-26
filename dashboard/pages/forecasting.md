@@ -85,33 +85,34 @@ order by date
 ---
 
 ```sql yoy_comparison
+-- C1 cutover: orders from fact_order (net_sales = order-level, sums identically)
 with ref as (
     select
         date_trunc('month', max(d.date)) as last_complete_month
     from gold.dim_date d
-    join gold.fact_sales f on d.date_key = f.date_key
+    join gold.fact_order f on d.date_key = f.date_key
     where d.date < date_trunc('month', current_date)
 )
 select
     strftime(r.last_complete_month, '%B %Y')             as period_label,
     sum(case when date_trunc('month', d.date) = r.last_complete_month
-             then f.net_sales else 0 end)                as current_year_sales,
+             then f.order_net_sales else 0 end)          as current_year_sales,
     sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year'
-             then f.net_sales else 0 end)                as prior_year_sales,
+             then f.order_net_sales else 0 end)          as prior_year_sales,
     sum(case when date_trunc('month', d.date) = r.last_complete_month
              then f.order_count else 0 end)              as current_year_orders,
     sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year'
              then f.order_count else 0 end)              as prior_year_orders,
     round(
         (
-            sum(case when date_trunc('month', d.date) = r.last_complete_month then f.net_sales else 0 end)
-          - sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year' then f.net_sales else 0 end)
+            sum(case when date_trunc('month', d.date) = r.last_complete_month then f.order_net_sales else 0 end)
+          - sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year' then f.order_net_sales else 0 end)
         )::numeric
-        / nullif(sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year' then f.net_sales else 0 end), 0)
+        / nullif(sum(case when date_trunc('month', d.date) = r.last_complete_month - interval '1 year' then f.order_net_sales else 0 end), 0)
         * 100,
         1
     )                                                    as yoy_sales_growth_pct
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 cross join ref r
 group by r.last_complete_month
@@ -128,9 +129,9 @@ select
     d.month,
     d.month_name,
     cast(d.year as text)                         as year,
-    round(sum(f.net_sales)::numeric, 2)          as net_sales,
+    round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 where d.year in (extract(year from current_date)::int - 1, extract(year from current_date)::int)
 group by d.year, d.month, d.month_name

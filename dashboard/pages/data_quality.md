@@ -79,7 +79,7 @@ select
         sum(case when f.destination_key = 0 then f.order_count else 0 end)::numeric
         / nullif(sum(f.order_count), 0) * 100, 1
     )                                                                                   as unknown_pct
-from gold.fact_sales f
+from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
 group by d.year, d.month
 order by d.year, d.month
@@ -88,7 +88,7 @@ order by d.year, d.month
 ```sql unknown_totals
 select
     (select count(*) from gold.dim_employee where employee_name = 'UNKNOWN')    as unknown_employee_rows,
-    (select sum(order_count) from gold.fact_sales where destination_key = 0)     as unknown_dest_orders
+    (select sum(order_count) from gold.fact_order where destination_key = 0)     as unknown_dest_orders
 ```
 
 ## Unknown Tracker
@@ -138,8 +138,8 @@ select
     max(d.date)                                            as latest_sale_date,
     min(d.date)                                            as earliest_sale_date,
     datediff('day', max(d.date), current_date)             as days_since_last_data
-from fact_sales f
-join dim_date d on f.date_key = d.date_key
+from gold.fact_order f
+join gold.dim_date d on f.date_key = d.date_key
 ```
 
 ## Freshness Monitor
