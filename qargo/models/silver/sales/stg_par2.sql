@@ -26,6 +26,7 @@ select
     "Net Sales"      as net_sales,
     "Order ID"       as order_id,
     "Order ID"       as order_ref,   -- true per-order key (PAR Order ID is a real order id)
+    1.0              as qty,          -- PAR exposes no qty (CSV+API are one row per item line); 1 per line is the only available value
     0.0              as tip_amount,
     upper(trim("Destination"))  as destination,
     "Employee Name"  as employee_name,
