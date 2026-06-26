@@ -8,6 +8,10 @@
 -- with same-product lines of an order collapsed and their quantities summed.
 --   qty: LS2 -> real "Qty" (signed; negatives = returns). PAR -> 1.0 per line
 --        (PAR exposes no quantity in CSV or API; documented approximation).
+--
+-- Items Sold is NET of returns (LS2 negative Qty lines subtract). Decided 2026-06-25,
+-- consistent with the 'net sales' convention used elsewhere in reporting. A separate
+-- gross "Items Returned" metric is backlog, not built here.
 -- order_id = order_ref, the SAME key used by fact_order, so the two facts join cleanly
 -- (every order_id here must exist in fact_order — see assert_fact_sale_item_has_parent_order).
 -- This is the real "Items Sold" source: sum(qty). fact_sales (old) is untouched.

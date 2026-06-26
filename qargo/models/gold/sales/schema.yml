@@ -35,3 +35,45 @@ models:
       - name: order_count
         tests:
           - not_null
+
+  - name: fact_order
+    description: >
+      One row per real order (grain = source_system + order_id). order_count is a
+      literal 1, so sum(order_count) is additive by construction (fixes C1).
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: order_count
+        description: "Always 1. Sum for a true, additive order count."
+        tests:
+          - not_null
+
+  - name: fact_sale_item
+    description: >
+      One row per (order, product). qty is the real "Items Sold" measure (fixes C2).
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: qty
+        description: >
+          Items Sold, NET of returns. LS2 contributes real signed Qty (negative lines =
+          returns, which subtract); PAR contributes 1.0 per item line (PAR exposes no
+          quantity in CSV or API). Decided 2026-06-25, consistent with the 'net sales'
+          convention used elsewhere. NOT gross — a separate "Items Returned" metric is
+          backlog. Can be negative at row level; do not apply is_non_negative.
+        tests:
+          - not_null

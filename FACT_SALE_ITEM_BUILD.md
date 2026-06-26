@@ -1,6 +1,20 @@
-# Phase 2b — fact_sale_item build (C2 root-cause fix)
+# Phase 2b — fact_sale_item build (C2 root-cause fix) — ✅ CLOSED
 
 > Scope: build `fact_sale_item` only. `fact_sales` (old, live) and `fact_order` (2a) untouched. No dashboard changes (sub-thread 3). Date: 2026-06-25.
+
+## Business decision (closed 2026-06-25): Items Sold = NET of returns
+
+"Items Sold" is **net of returns** — LS2 negative `Qty` lines (returns/refunds, 1,664 rows) subtract from the total, consistent with the 'net sales' convention used elsewhere in reporting. So `sum(qty)` = 566,602 is a **net** figure.
+
+Formalized in:
+- `fact_sale_item.sql` header comment (explicit decision + date).
+- `schema.yml` → `fact_sale_item.qty` column `description`: states "Items Sold, NET of returns", explains LS2 signed Qty vs PAR 1.0/line, and notes `qty` can be negative at row level (no `is_non_negative`).
+
+No separate "Items Returned" metric is built here → **[BACKLOG PENDIENTE]** (build only if the business asks; does not block C1+C2). `fact_sale_item` already carries the signed LS2 lines, so a future gross/returned split is derivable without re-modeling.
+
+Tests after formalization: **12 PASS** (schema not_null on `fact_order`/`fact_sale_item` + 3 singular: qty-additive, parent-order, order-additive). Python suite: 333 passed, 1 skipped.
+
+**Phase 2b is CLOSED.** C1 (`fact_order`, 2a) + C2 (`fact_sale_item`, 2b) root causes both resolved at the model layer. Remaining: sub-thread 3 (dashboard cutover) and the adjacent C3 items (API product/tax), independent of this close.
 
 ## Executive summary (5 lines)
 1. **Qty availability: LS2 yes, PAR no.** `raw_ls2.Qty` is real (double, 0 nulls, integer values, signed). PAR has **no** quantity in either CSV (20 cols, none) or API (`OrderEntry` parses none). Decision: LS2 → real `Qty`; PAR → `qty = 1.0` per item line (documented approximation).
