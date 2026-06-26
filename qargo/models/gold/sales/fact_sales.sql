@@ -1,3 +1,9 @@
+-- PARTIAL DEPRECATION (C1+C2 epic, 2026-06-25):
+--   order_count here is SUPERSEDED by fact_order (additive order count, fixes C1) and
+--   "Items Sold" by fact_sale_item.qty (real units, fixes C2). No dashboard page sources
+--   order_count from this model anymore.
+--   STILL the source of truth for discount_total / tax_amount / tip_amount / net_sales,
+--   which fact_order and fact_sale_item do NOT carry. Do NOT delete.
 {{ config(
     materialized='incremental',
     unique_key=['date_key', 'store_key', 'product_key', 'destination_key'],
