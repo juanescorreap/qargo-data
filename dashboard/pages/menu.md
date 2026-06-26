@@ -100,19 +100,21 @@ order by d.year, d.month
 ---
 
 ```sql top_products_by_revenue
+-- C2 cutover: product grain -> fact_sale_item. "Orders per product" is not meaningful
+-- (an order spans products), so replaced by Items Sold (qty) and Avg Unit Price.
 select
     p.product_canonical_name,
     p.revenue_center_name,
-    round(sum(f.net_sales)::numeric, 2)   as net_sales,
-    sum(f.order_count)                    as order_count,
-    round(avg(f.avg_ticket)::numeric, 2)  as avg_ticket
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2)                                    as net_sales,
+    sum(f.qty)                                                                  as items_sold,
+    round((sum(f.item_net_sales) / nullif(sum(f.qty), 0))::numeric, 2)          as avg_unit_price
+from gold.fact_sale_item f
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
 where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.fact_sale_item f2 on d2.date_key = f2.date_key
 )
   and p.product_name <> 'UNKNOWN'
 group by p.product_canonical_name, p.revenue_center_name
@@ -126,8 +128,8 @@ limit 30
     <Column id=product_canonical_name title="Product"               />
     <Column id=revenue_center_name    title="Category"              />
     <Column id=net_sales              title="Net Sales"    fmt=usd  />
-    <Column id=order_count            title="Orders"                />
-    <Column id=avg_ticket             title="Avg Ticket"  fmt=usd  />
+    <Column id=items_sold             title="Items Sold"            />
+    <Column id=avg_unit_price         title="Avg Unit Price" fmt=usd />
 </DataTable>
 
 ---
@@ -142,24 +144,25 @@ limit 30
 > - Waste cost by product category
 
 ```sql waste_placeholder
+-- C2 cutover: product/category grain -> fact_sale_item (items sold, net of returns)
 select
     p.revenue_center_name                           as category,
-    round(sum(f.net_sales)::numeric, 2)             as net_sales,
-    sum(f.order_count)                              as orders_processed
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2)        as net_sales,
+    sum(f.qty)                                      as items_processed
+from gold.fact_sale_item f
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
 where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.fact_sale_item f2 on d2.date_key = f2.date_key
 )
 group by p.revenue_center_name
 order by net_sales desc
 ```
 
 <DataTable data={waste_placeholder} title="Category Volume (Inventory Integration Hook)">
-    <Column id=category         title="Category"           />
-    <Column id=net_sales        title="Net Sales" fmt=usd  />
-    <Column id=orders_processed title="Orders Processed"   />
+    <Column id=category        title="Category"           />
+    <Column id=net_sales       title="Net Sales" fmt=usd  />
+    <Column id=items_processed title="Items Processed"    />
 </DataTable>

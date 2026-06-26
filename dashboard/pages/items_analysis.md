@@ -42,11 +42,12 @@ order by sort_order
 ---
 
 ```sql overall_performance
+-- C2 cutover: Items Sold = sum(qty) (net of returns) from fact_sale_item
 select
     s.store_name,
-    round(sum(f.net_sales)::numeric, 2) as net_sales,
-    sum(f.order_count)                  as items_sold
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2) as net_sales,
+    sum(f.qty)                               as items_sold
+from gold.fact_sale_item f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.date between '${inputs.date_range.start}'::date and '${inputs.date_range.end}'::date
@@ -75,9 +76,9 @@ with filtered as (
         p.product_canonical_name,
         p.revenue_center_name,
         p.product_name,
-        sum(f.net_sales)   as net_sales,
-        sum(f.order_count) as items_sold
-    from gold.fact_sales f
+        sum(f.item_net_sales) as net_sales,
+        sum(f.qty)            as items_sold
+    from gold.fact_sale_item f
     join gold.dim_date    d on f.date_key    = d.date_key
     join gold.dim_store   s on f.store_key   = s.store_key
     join gold.dim_product p on f.product_key = p.product_key

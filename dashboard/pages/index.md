@@ -54,17 +54,45 @@ where d.year = extract(year from current_date)::int
   )
 ```
 
+```sql kpi_items_current_month
+-- C2 cutover: real Items Sold = sum(qty), net of returns, from fact_sale_item
+select sum(f.qty) as items_sold
+from gold.fact_sale_item f
+join gold.dim_date  d on f.date_key  = d.date_key
+join gold.dim_store s on f.store_key = s.store_key
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and (
+      '${inputs.store_filter}' = 'All Stores'
+      or '${inputs.store_filter}' = ''
+      or s.store_name = '${inputs.store_filter}'
+  )
+```
+
+```sql kpi_items_ytd
+select sum(f.qty) as items_sold_ytd
+from gold.fact_sale_item f
+join gold.dim_date  d on f.date_key  = d.date_key
+join gold.dim_store s on f.store_key = s.store_key
+where d.year = extract(year from current_date)::int
+  and d.date <= current_date
+  and (
+      '${inputs.store_filter}' = 'All Stores'
+      or '${inputs.store_filter}' = ''
+      or s.store_name = '${inputs.store_filter}'
+  )
+```
+
 ## Current Month
 
-<BigValue data={kpi_current_month} value=net_sales   title="Net Sales"       fmt=usd  />
-<BigValue data={kpi_current_month} value=avg_ticket  title="Avg Ticket"      fmt=usd  />
-<BigValue data={kpi_current_month} value=order_count title="Items Sold"              />
+<BigValue data={kpi_current_month}    value=net_sales   title="Net Sales"       fmt=usd  />
+<BigValue data={kpi_current_month}    value=avg_ticket  title="Avg Ticket"      fmt=usd  />
+<BigValue data={kpi_items_current_month} value=items_sold title="Items Sold (net of returns)" />
 
 ## Year to Date
 
-<BigValue data={kpi_ytd} value=net_sales_ytd   title="Net Sales YTD"   fmt=usd />
-<BigValue data={kpi_ytd} value=avg_ticket_ytd  title="Avg Ticket YTD"  fmt=usd />
-<BigValue data={kpi_ytd} value=order_count_ytd title="Items Sold YTD"          />
+<BigValue data={kpi_ytd}           value=net_sales_ytd   title="Net Sales YTD"   fmt=usd />
+<BigValue data={kpi_ytd}           value=avg_ticket_ytd  title="Avg Ticket YTD"  fmt=usd />
+<BigValue data={kpi_items_ytd}     value=items_sold_ytd  title="Items Sold YTD (net of returns)" />
 
 ---
 
