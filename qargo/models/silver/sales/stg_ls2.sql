@@ -30,6 +30,7 @@ select
 
     "FinalPrice"          as net_sales,
     "Account"             as order_id,
+    "Reference"           as order_ref,   -- true per-transaction key; Account groups ~5.5 orders (undercount), Reference is per-receipt
     0.0                   as tip_amount,
     null::text            as destination,
     upper(trim("Staff"))  as employee_name,
