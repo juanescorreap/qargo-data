@@ -19,7 +19,10 @@ class PAR2CSVIngester(FileBasedIngester):
 
     @property
     def target_table(self) -> str:
-        return "raw_par2"
+        # C4 fix: CSV writes to its own physical table. The generic loader's
+        # range DELETE (WHERE Date BETWEEN min AND max, all stores) is safe here
+        # because raw_par2_csv holds ONLY CSV rows — it can never clobber API data.
+        return "raw_par2_csv"
 
     @property
     def date_column(self) -> str:

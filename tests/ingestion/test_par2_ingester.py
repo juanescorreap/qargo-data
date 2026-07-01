@@ -66,7 +66,7 @@ class TestProperties:
         assert INGESTER.source_name == "par2"
 
     def test_target_table(self):
-        assert INGESTER.target_table == "raw_par2"
+        assert INGESTER.target_table == "raw_par2_csv"
 
     def test_date_column(self):
         assert INGESTER.date_column == "Date"

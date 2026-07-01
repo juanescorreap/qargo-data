@@ -291,7 +291,7 @@ def build_raw_par2_rows(
     store_name: str,
     business_date: str,
 ) -> list[dict[str, Any]]:
-    """Map parsed entry-level data to the bronze.raw_par2 column schema."""
+    """Map parsed entry-level data to the bronze.raw_par2_api column schema."""
     order_map = {o["order_id"]: o for o in orders}
     ingested_at = pd.Timestamp.now("UTC")
     rows = []
@@ -321,6 +321,10 @@ def build_raw_par2_rows(
             "_source_file": None,
             "_source_system": "par_api",
             "_ingested_at": ingested_at,
+            # entry_id is the PAR OrderEntry Id (unique per line within an order);
+            # carried through for line-level idempotency in raw_par2_api. CSV has no
+            # equivalent, so the UNION in stg_par2 leaves it NULL for CSV rows.
+            "entry_id": entry.get("entry_id"),
         })
     return rows
 
@@ -356,11 +360,14 @@ def write_raw_par2(
         return 0
     df = pd.DataFrame(rows)
     with engine.begin() as conn:
+        # raw_par2_api holds ONLY API rows by construction, so a Location+Date
+        # DELETE is safe and self-scoped — it can never touch CSV rows (C4 fix:
+        # writers no longer share a physical table).
         conn.execute(
-            text('DELETE FROM bronze.raw_par2 WHERE "Location" = :s AND "Date" = :d'),
+            text('DELETE FROM bronze.raw_par2_api WHERE "Location" = :s AND "Date" = :d'),
             {"s": store_name, "d": business_date},
         )
-        df.to_sql("raw_par2", conn, schema="bronze", if_exists="append", index=False)
+        df.to_sql("raw_par2_api", conn, schema="bronze", if_exists="append", index=False)
     return len(df)
 
 
@@ -417,9 +424,9 @@ async def process_store(
 
         if dry_run:
             print(f"\n[dry-run] {store.store_name}: {len(orders)} orders, {len(entries)} entries")
-            print(f"[dry-run] bronze.raw_par2 rows to insert: {len(raw_par2_rows)}")
+            print(f"[dry-run] bronze.raw_par2_api rows to insert: {len(raw_par2_rows)}")
             if raw_par2_rows:
-                print(f"[dry-run] First raw_par2 row:\n  {raw_par2_rows[0]}")
+                print(f"[dry-run] First raw_par2_api row:\n  {raw_par2_rows[0]}")
             if entries:
                 print(f"[dry-run] First entry row:\n  {entries[0]}")
             result["inserted"] = len(raw_par2_rows)
@@ -429,7 +436,7 @@ async def process_store(
         n_entries = write_entries(engine, entries, store.store_name, business_date)
         result["inserted"] = n_par2 + n_entries
         print(
-            f"[{store.store_name}] {n_par2} rows → bronze.raw_par2 | "
+            f"[{store.store_name}] {n_par2} rows → bronze.raw_par2_api | "
             f"{n_entries} rows → bronze.raw_par2_entries"
         )
     except Exception as exc:
