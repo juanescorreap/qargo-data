@@ -12,12 +12,7 @@ sources:
         description: >
           PAR sales, daily SOAP API. Sole target of ingestion/par_api.py
           (write_raw_par2). Carries entry_id; C4 split table.
-      - name: raw_par2
-        description: >
-          DEPRECATED (C4). Former shared table written by BOTH the CSV loader
-          and the PAR API with incompatible DELETE predicates → silent
-          clobbering. Superseded by raw_par2_csv + raw_par2_api, combined in
-          model bronze_par2 with CSV-over-API precedence. Retained read-only for
-          transition/comparison; no writer targets it anymore. Pending
-          user-confirmed deprecation.
+      # raw_par2 REMOVED (C4 close): dropped from Supabase after 1:1 migration to
+      # raw_par2_csv + raw_par2_api. Superseded by model bronze_par2 (UNION with
+      # CSV-over-API precedence).
       - name: raw_ls2
