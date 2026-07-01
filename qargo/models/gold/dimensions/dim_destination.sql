@@ -2,7 +2,7 @@
 
 with raw as (
     select distinct upper(trim("Destination")) as destination_name
-    from {{ source('bronze', 'raw_par2') }}
+    from {{ ref('bronze_par2') }}   -- C4: unified CSV+API source (was source raw_par2)
     where "Destination" is not null
       and trim("Destination") <> ''
 )

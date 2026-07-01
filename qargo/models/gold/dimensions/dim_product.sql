@@ -11,7 +11,7 @@ with par_products as (
             when lower("Revenue Center") like '%combo%'    then 'Food'
             else 'Other'
         end                                                              as revenue_center_name
-    from {{ source('bronze', 'raw_par2') }}
+    from {{ ref('bronze_par2') }}   -- C4: unified CSV+API source (was source raw_par2)
     where "Item Name"   is not null
       and trim("Item Name") <> ''
       and "Voided"      = false

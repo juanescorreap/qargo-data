@@ -2,7 +2,7 @@
 
 with par_staff as (
     select distinct upper(trim("Employee Name")) as employee_name
-    from {{ source('bronze', 'raw_par2') }}
+    from {{ ref('bronze_par2') }}   -- C4: unified CSV+API source (was source raw_par2)
     where "Employee Name" is not null
       and trim("Employee Name") <> ''
       and "Employee Name" !~ '^[0-9]+$'  -- exclude numeric IDs written by the API
