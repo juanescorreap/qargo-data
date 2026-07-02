@@ -55,7 +55,8 @@ select
     "Discount Total" as discount_total,
     eff_item_name                                          as product_name,
     regexp_replace(eff_item_name, '^[0-9]+\s*OZ\s+', '')  as product_canonical_name,
-    "_source_system"                                       as _source_system  -- 'par2' (CSV) | 'par_api', post-C4 split
+    "_source_system"                                       as _source_system,  -- 'par2' (CSV) | 'par_api', post-C4 split
+    "_ingested_at"                                         as _ingested_at     -- C5 load-time watermark
 
 from src
 where

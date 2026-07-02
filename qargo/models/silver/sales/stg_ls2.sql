@@ -39,7 +39,8 @@ select
     "Discount"            as discount_total,
     upper(trim("Item"))   as product_name,
     regexp_replace(upper(trim("Item")), '\s*\(\s*[0-9]+\s*OZ\s*\)\s*[A-Z]{0,3}\s*$', '') as product_canonical_name,
-    'ls2'                 as _source_system
+    'ls2'                 as _source_system,
+    "_ingested_at"        as _ingested_at     -- C5 load-time watermark
 
 from {{ ref('bronze_ls2') }}
 where
