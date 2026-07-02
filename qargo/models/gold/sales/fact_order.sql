@@ -19,14 +19,16 @@ with order_lines as (
         store_name,
         destination,
         sale_date,
-        net_sales
+        net_sales,
+        _ingested_at
     from {{ ref('stg_orders') }}
     where order_ref is not null and btrim(order_ref) <> ''
     {% if is_incremental() %}
-      and sale_date > (
-          select coalesce(max(d.date), '2000-01-01'::date)
-          from {{ this }} f
-          join {{ ref('dim_date') }} d on f.date_key = d.date_key
+      -- C5: watermark on load time. stg_orders already gates late/retro rows in by
+      -- _ingested_at; the fact picks up anything silver newly produced. delete+insert
+      -- on unique_key replaces reprocessed orders (whole partitions reload together).
+      and _ingested_at > (
+          select coalesce(max(_ingested_at), '2000-01-01'::timestamptz) from {{ this }}
       )
     {% endif %}
 ),
@@ -40,7 +42,8 @@ order_agg as (
         max(store_name)         as store_name,
         max(destination)        as destination,
         max(sale_date)          as sale_date,
-        sum(net_sales)          as order_net_sales
+        sum(net_sales)          as order_net_sales,
+        max(_ingested_at)       as _ingested_at
     from order_lines
     group by _source_system, order_ref
 )
@@ -52,7 +55,8 @@ select
     o.source_system,
     o.order_id,
     o.order_net_sales,
-    1 as order_count
+    1 as order_count,
+    o._ingested_at
 from order_agg o
 inner join {{ ref('dim_date') }}        d    on o.sale_date                        = d.date
 inner join {{ ref('dim_store') }}       s    on o.store_name                       = s.store_name

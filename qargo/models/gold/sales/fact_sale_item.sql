@@ -25,14 +25,13 @@ with item_lines as (
         product_name,
         sale_date,
         qty,
-        net_sales
+        net_sales,
+        _ingested_at
     from {{ ref('stg_orders') }}
     where order_ref is not null and btrim(order_ref) <> ''
     {% if is_incremental() %}
-      and sale_date > (
-          select coalesce(max(d.date), '2000-01-01'::date)
-          from {{ this }} f
-          join {{ ref('dim_date') }} d on f.date_key = d.date_key
+      and _ingested_at > (  -- C5: load-time watermark (was sale_date)
+          select coalesce(max(_ingested_at), '2000-01-01'::timestamptz) from {{ this }}
       )
     {% endif %}
 ),
@@ -46,7 +45,8 @@ joined as (
         il._source_system                 as source_system,
         il.order_ref                      as order_id,
         il.qty,
-        il.net_sales
+        il.net_sales,
+        il._ingested_at
     from item_lines il
     inner join {{ ref('dim_date') }}        d    on il.sale_date                       = d.date
     inner join {{ ref('dim_store') }}       s    on il.store_name                      = s.store_name
@@ -61,7 +61,8 @@ select
     destination_key,
     source_system,
     order_id,
-    sum(qty)        as qty,
-    sum(net_sales)  as item_net_sales
+    sum(qty)          as qty,
+    sum(net_sales)    as item_net_sales,
+    max(_ingested_at) as _ingested_at
 from joined
 group by date_key, store_key, product_key, destination_key, source_system, order_id

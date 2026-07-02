@@ -21,13 +21,12 @@ with orders as (
         destination,
         tax_amount,
         discount_total,
-        product_name
+        product_name,
+        _ingested_at
     from {{ ref('stg_orders') }}
     {% if is_incremental() %}
-    where sale_date > (
-        select coalesce(max(d.date), '2000-01-01'::date)
-        from {{ this }} f
-        join {{ ref('dim_date') }} d on f.date_key = d.date_key
+    where _ingested_at > (  -- C5: load-time watermark (was sale_date)
+        select coalesce(max(_ingested_at), '2000-01-01'::timestamptz) from {{ this }}
     )
     {% endif %}
 ),
@@ -42,7 +41,8 @@ joined as (
         o.order_id,
         o.tip_amount,
         o.tax_amount,
-        o.discount_total
+        o.discount_total,
+        o._ingested_at
     from orders o
     inner join {{ ref('dim_date') }}        d    on o.sale_date                              = d.date
     inner join {{ ref('dim_store') }}       s    on o.store_name                             = s.store_name
@@ -60,6 +60,7 @@ select
     sum(tip_amount)                                                             as tip_amount,
     sum(tax_amount)                                                             as tax_amount,
     sum(discount_total)                                                         as discount_total,
-    round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)  as avg_ticket
+    round((sum(net_sales) / nullif(count(distinct order_id), 0))::numeric, 2)  as avg_ticket,
+    max(_ingested_at)                                                           as _ingested_at
 from joined
 group by date_key, store_key, product_key, destination_key
