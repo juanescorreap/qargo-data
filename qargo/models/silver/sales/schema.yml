@@ -1,6 +1,20 @@
 version: 2
 
 models:
+  - name: dim_item_catalog
+    description: >
+      C3 interim ItemId→product lookup derived from raw_par2_csv (most-recent name
+      per Item ID). Used by stg_par2 to enrich API rows lacking Item Name/category.
+    columns:
+      - name: item_id
+        tests:
+          - not_null
+          - unique
+      - name: item_name
+        tests:
+          - not_null
+      - name: revenue_center
+
   - name: stg_par2
     columns:
       - name: sale_date
