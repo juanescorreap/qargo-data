@@ -4,6 +4,27 @@
     on_schema_change='append_new_columns'
 ) }}
 
+with src as (
+    select
+        b.*,
+        -- C3: effective revenue center. CSV rows carry a DESCRIPTIVE value
+        -- ('Beverages','FOOD','RETAIL',...). API rows carry a numeric DayPartId
+        -- (e.g. '640207795') because GetOrders exposes no RevenueCenterId — detect
+        -- the purely-numeric case and substitute the catalog's descriptive value so
+        -- the category derives correctly. CSV Revenue Center is never numeric
+        -- (verified 0 rows), so CSV rows always keep their own value.
+        case
+            when b."Revenue Center" ~ '^[0-9]+$' then cat.revenue_center
+            else b."Revenue Center"
+        end as eff_revenue_center,
+        -- C3: API rows have Item Name = NULL; fall back to the catalog name.
+        -- CSV rows keep their own name (non-null), so the coalesce is a no-op there.
+        coalesce(upper(trim(b."Item Name")), cat.item_name) as eff_item_name
+    from {{ ref('bronze_par2') }} b
+    left join {{ ref('dim_item_catalog') }} cat
+        on b."Item ID" = cat.item_id
+)
+
 select
     cast("Date" as date) as sale_date,
 
@@ -16,10 +37,10 @@ select
     )) as store_name,
 
     case
-        when lower("Revenue Center") like '%beverage%' then 'Beverage'
-        when lower("Revenue Center") like '%food%'     then 'Food'
-        when lower("Revenue Center") like '%retail%'   then 'Retail'
-        when lower("Revenue Center") like '%combo%'    then 'Food'
+        when lower(eff_revenue_center) like '%beverage%' then 'Beverage'
+        when lower(eff_revenue_center) like '%food%'     then 'Food'
+        when lower(eff_revenue_center) like '%retail%'   then 'Retail'
+        when lower(eff_revenue_center) like '%combo%'    then 'Food'
         else 'Other'
     end as revenue_center,
 
@@ -32,11 +53,11 @@ select
     "Employee Name"  as employee_name,
     "Taxes"          as tax_amount,
     "Discount Total" as discount_total,
-    upper(trim("Item Name"))                                         as product_name,
-    regexp_replace(upper(trim("Item Name")), '^[0-9]+\s*OZ\s+', '') as product_canonical_name,
-    "_source_system"                                                as _source_system  -- 'par2' (CSV) | 'par_api', post-C4 split
+    eff_item_name                                          as product_name,
+    regexp_replace(eff_item_name, '^[0-9]+\s*OZ\s+', '')  as product_canonical_name,
+    "_source_system"                                       as _source_system  -- 'par2' (CSV) | 'par_api', post-C4 split
 
-from {{ ref('bronze_par2') }}
+from src
 where
     "Voided"          = false
     and "Is Modifier" = false
