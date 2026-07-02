@@ -6,7 +6,10 @@
 -- (store, date) resolves to exactly one source — no duplicates, no clobbering.
 
 with csv_rows as (
-    select * from {{ source('bronze', 'raw_par2_csv') }}
+    -- raw_par2_csv has no entry_id (CSV never provided one, and the loader recreates
+    -- the table from the DataFrame without it). Add it explicitly as NULL::text so this
+    -- branch is column-compatible with raw_par2_api, which carries entry_id (added in C4).
+    select *, null::text as entry_id from {{ source('bronze', 'raw_par2_csv') }}
 ),
 
 api_rows as (
