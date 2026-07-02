@@ -1,8 +1,18 @@
 {{ config(
     materialized='incremental',
-    incremental_strategy='append',
+    incremental_strategy='delete+insert',
+    unique_key=['store_name', 'sale_date'],
     on_schema_change='append_new_columns'
 ) }}
+
+-- C5 watermark = _ingested_at (load time), NOT sale_date. Late/retro/backfilled
+-- rows carry an old sale_date but a fresh _ingested_at, so they are now processed.
+-- delete+insert on the PARTITION key (store_name, sale_date) mirrors the bronze
+-- reload grain: CSV re-inserts a whole date range, the API re-inserts a whole
+-- Location+Date — so any reprocessed (store, date) partition arrives complete and
+-- replaces its silver counterpart wholesale. _source_system is intentionally OUT of
+-- the key so a CSV load that supersedes prior API rows for the same (store, date)
+-- (bronze_par2 CSV-over-API precedence) cleans up the stale API rows too.
 
 with src as (
     select
@@ -64,7 +74,7 @@ where
     and "Is Modifier" = false
     and "Net Sales"   is not null
     {% if is_incremental() %}
-    and cast("Date" as date) > (
-        select coalesce(max(sale_date), '2000-01-01'::date) from {{ this }}
+    and "_ingested_at" > (
+        select coalesce(max(_ingested_at), '2000-01-01'::timestamptz) from {{ this }}
     )
     {% endif %}

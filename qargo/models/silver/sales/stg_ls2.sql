@@ -1,8 +1,13 @@
 {{ config(
     materialized='incremental',
-    incremental_strategy='append',
+    incremental_strategy='delete+insert',
+    unique_key=['store_name', 'sale_date'],
     on_schema_change='append_new_columns'
 ) }}
+
+-- C5 watermark = _ingested_at (load time). delete+insert on the partition key
+-- (store_name, sale_date) mirrors the LS2 file reload grain (a file = one store,
+-- a date range), so a reprocessed partition replaces its silver counterpart.
 
 select
     cast("Date" as date) as sale_date,
@@ -47,7 +52,7 @@ where
     split_part("Group", '(', 1) not ilike '%modifier%'
     and "FinalPrice" is not null
     {% if is_incremental() %}
-    and cast("Date" as date) > (
-        select coalesce(max(sale_date), '2000-01-01'::date) from {{ this }}
+    and "_ingested_at" > (
+        select coalesce(max(_ingested_at), '2000-01-01'::timestamptz) from {{ this }}
     )
     {% endif %}
