@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -49,7 +48,7 @@ class PAR2CSVIngester(FileBasedIngester):
 
         df["_source_file"] = filepath.name
         df["_source_system"] = self.source_name
-        df["_ingested_at"] = datetime.utcnow()
+        df["_ingested_at"] = pd.Timestamp.now(tz="UTC")  # tz-aware UTC (C5 load watermark)
         return df
 
 
@@ -95,5 +94,5 @@ class LS2CSVIngester(FileBasedIngester):
 
         df["_source_file"] = filepath.name
         df["_source_system"] = self.source_name
-        df["_ingested_at"] = datetime.utcnow()
+        df["_ingested_at"] = pd.Timestamp.now(tz="UTC")  # tz-aware UTC (C5 load watermark)
         return df

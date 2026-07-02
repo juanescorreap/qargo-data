@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS bronze.raw_par2_csv (
     "Order ID"              text,
     "_source_file"          text,
     "_source_system"        text,
-    "_ingested_at"          timestamp without time zone,
+    "_ingested_at"          timestamptz DEFAULT now(),
     "entry_id"              text   -- always NULL for CSV; present for schema parity
 );
 
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS bronze.raw_par2_api (
     "Order ID"              text,
     "_source_file"          text,
     "_source_system"        text,
-    "_ingested_at"          timestamp without time zone,
+    "_ingested_at"          timestamptz DEFAULT now(),
     "entry_id"              text   -- PAR OrderEntry Id; unique per line within an order
 );
 
