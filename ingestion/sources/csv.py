@@ -36,7 +36,10 @@ class PAR2CSVIngester(FileBasedIngester):
             return df
 
         df = df.rename(columns={"Closed Date/Time": "Date"})
-        df["Date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y %I:%M %p").dt.date
+        # PAR exports vary the timestamp format between dumps (with/without seconds,
+        # e.g. "06/03/2026 05:30:55 PM" vs "4/14/2025 5:09 PM"). Infer per-row instead
+        # of hardcoding one strptime pattern that breaks on the next CSV.
+        df["Date"] = pd.to_datetime(df["Date"], format="mixed").dt.date
 
         for col in _CURRENCY_COLS_PAR:
             if col in df.columns:
