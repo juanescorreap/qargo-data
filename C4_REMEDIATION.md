@@ -143,12 +143,29 @@ Commit: `chore(bronze): drop deprecated raw_par2, remove from sources (C4 close)
 
 - **DROPPED** (2026-07-01). Data fully migrated 1:1 beforehand; no live consumers remained.
 
-## BACKLOG PENDIENTE (no arreglado en esta sesión)
+## BACKLOG — credencial Supabase (CERRADO 2026-07-02)
 
-1. **`SUPABASE_DB_URL` en `.env` tiene password stale post-rotación** — `par_api.py` y
-   `run.py` fallarán auth si usan la URL directa. Corregir manualmente en `.env` con el mismo
-   valor ya confirmado en `SUPABASE_PASSWORD` (28-char). Verificar también el GitHub Actions
-   secret `SUPABASE_DB_URL`. (Working cred confirmado esta sesión = `SUPABASE_PASSWORD`.)
+**`SUPABASE_DB_URL` reconciliado en todos los destinos, password viejo confirmado muerto por
+test de regresión, GitHub Actions user-attested.**
+
+Detalle del cierre (rotación de password 2026-07-02, valor URL-encoded vía `quote(pw, safe="")`):
+
+| Destino | Estado |
+|---------|--------|
+| `.env` root `SUPABASE_PASSWORD` | ✅ MATCH |
+| `.env` root `SUPABASE_DB_URL` | ✅ reconciliado, MATCH |
+| `dashboard/.env` (discretos + URL) | ✅ reconciliado, MATCH |
+| `~/.dbt/profiles.yml` | ✅ usa `env_var()` → toma de `.env` root (dbt-debug SUCCESS) |
+| GitHub Actions secret `SUPABASE_DB_URL` | ✅ user-attested (copió el valor ya reconciliado del `.env` local) |
+
+- `make dbt-debug`: SUCCESS.
+- `tests/security/test_leaked_credential_revoked.py` contra el password rotado-out: PASS
+  (viejo rechazado por la BD).
+- Backups temporales de `.env` (con passwords muertos) borrados; `.gitignore` (`.env*`) cubre
+  todos los `.env*` en cualquier nivel — verificado, nada de secretos en `git status`.
+- Nota menor: un fragmento del password actual apareció en un traceback de parseo (URL
+  malformada, transitorio) — solo en el transcript local de la sesión, nunca commiteado.
+  Ver `[[credential-topology]]`.
 2. **`entry_id` now on `raw_par2_api`** (NULL for CSV/historical). Enables a future
    `UNIQUE (_source_system, "Order ID", "Item ID", entry_id)` + `ON CONFLICT` upsert — but
    note 90,905 duplicate `(Order ID, Item ID)` groups exist in CSV history, so any UNIQUE

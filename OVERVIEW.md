@@ -50,7 +50,8 @@ bronze/sales/   → views   : bronze_par2, bronze_ls2
 silver/sales/   → staging : stg_par2, stg_ls2, stg_orders
 gold/dimensions/→ tables  : dim_date, dim_store, dim_product,
                             dim_destination, dim_employee, dim_campaign
-gold/sales/     → facts   : fact_sales, fact_sales_by_employee
+gold/sales/     → facts   : fact_sales, fact_sales_by_employee,
+                            fact_order, fact_sale_item
 gold/insights/  → placeholder (análisis cruzados futuros)
 ```
 
@@ -71,8 +72,10 @@ gold/insights/  → placeholder (análisis cruzados futuros)
 
 | Tabla | Granularidad | Métricas |
 |---|---|---|
-| `fact_sales` | día × tienda × categoría × canal | net_sales, order_count, tip_amount, tax_amount, discount_total, avg_ticket |
-| `fact_sales_by_employee` | día × tienda × empleado | net_sales, order_count, tip_amount, tax_amount, discount_total, avg_ticket |
+| `fact_sales` | día × tienda × categoría × canal | net_sales, tip_amount, tax_amount, discount_total. **`order_count`/`avg_ticket` deprecados (C1)** — no aditivos; ya no los consume ninguna página canónica. Sigue siendo source of truth de discount/tax/tip/net_sales. NO borrar. |
+| `fact_sales_by_employee` | día × tienda × empleado | net_sales, order_count, tip_amount, tax_amount, discount_total, avg_ticket. **`order_count` arrastra el mismo defecto C1** (sin fact de orden por empleado todavía). |
+| `fact_order` | **1 fila por orden real** (`source_system`, `order_id`) | order_net_sales, `order_count = 1` literal → **aditivo por construcción** (resuelve C1). LS2 keyed en `Reference` (no `Account`). Total real: 328,862 órdenes. |
+| `fact_sale_item` | 1 fila por (orden × producto) | `qty` (Items Sold real, **net de devoluciones**; LS2 `Qty` real, PAR = 1.0/línea), item_net_sales (resuelve C2). Total: 566,602 units. |
 
 ---
 
@@ -148,7 +151,7 @@ make dbt-debug && make dbt-run && make dbt-test
 
 ## Tests
 
-243 tests, 0 fallos.
+333 tests, 0 fallos (+1 skipped: regression de credencial filtrada, inerte por defecto). dbt: 57 PASS incl. tests singulares de aditividad C1/C2 (`assert_fact_order_additive`, `assert_fact_sale_item_qty_additive`, `assert_fact_sale_item_has_parent_order`).
 
 ```
 tests/ci/          workflow structure, secrets, embedded Python
@@ -158,13 +161,35 @@ tests/ingestion/   ingestores CSV, watermark, loader
 
 ---
 
-## Estado del repo (snapshot)
+## Estado actual (última sesión: 2026-06-25)
 
-Archivos exploratorios sueltos sin commitear, **fuera del pipeline**:
+Dos epics cerrados. Detalle en los reports sin commitear (`AUDIT.md`, `DIAGNOSIS_C1_C2.md`, `FACT_ORDER_BUILD.md`, `FACT_SALE_ITEM_BUILD.md`, `DASHBOARD_CUTOVER.md`, `SECURITY_FORENSICS_REPORT.md`, `REMEDIATION_REPORT.md`).
 
-- `berkeley_*.{py,csv,xlsx}` — análisis ad-hoc tienda Berkeley.
-- `food_*.{py,xlsx}` + `food_charts/` — análisis food matplotlib (San Antonio).
-- `dashboard/sources/gold/connection.yaml` — modificado.
-- varios `*:Zone.Identifier` — metadata de descarga Windows, borrables.
+### ✅ Epic seguridad (C6 + C7) — CERRADO, verificado
+- Password Supabase filtrado en working-tree `connection.yaml` → revertido a placeholders `${SUPABASE_*}`.
+- `logs/dbt.log` (filtraba host/user/port/db) **purgado de los 55 commits + force-push** al remote público.
+- Credencial **rotada**, verificada en dos direcciones (nueva autentica `make dbt-debug` OK; vieja rechazada por test `c06d730`).
+- Causa raíz: password en 3 homes desincronizados. Fix: `~/.dbt/profiles.yml` → `env_var()`, `.env` es single source of truth. Ver memoria `credential-topology`.
+- C6: `verify=True` en cliente PAR (`par_api.py`).
 
-`forecasting/` solo contiene `__init__.py` — placeholder vacío.
+### ✅ Epic corrección de datos (C1 + C2) — CERRADO en modelo + dashboard
+- **C1** (`order_count` no aditivo, double-counting): nuevo `fact_order`. Inflado 524,238 → real **328,862** (−37%).
+- **C2** (Items Sold no eran ítems): nuevo `fact_sale_item` con `Qty` real de LS2. Items Sold = `sum(qty)` = **566,602**, net de devoluciones.
+- Bug LS2 hallado: order_id estaba en `Account` (agrupa ~5.5 órdenes) → `fact_order` usa `Reference`.
+- 8 páginas canónicas migradas a los nuevos facts.
+
+### Backlog pendiente (nada bloqueante)
+
+| Item | Sev | Falta |
+|---|---|---|
+| `SUPABASE_SSL_CA` | MED | Código scaffolded (`48350d8`). Usuario debe pegar el CA PEM real del pooler Supabase en `.env` + crear el GitHub secret, si no el build Evidence con TLS estricto falla (`self-signed certificate in certificate chain`). **NO revertir a `false`**. |
+| GitHub secret `SUPABASE_DB_URL` | ASK | User-attested rotado, no verificable por mí. Reconfirmar que tiene el pw nuevo URL-encoded o el CI diario 8AM falla. |
+| `operations.md` | LOW | Sigue en `fact_sales_by_employee.order_count` — mismo defecto C1, sin fact de orden por empleado todavía. |
+| M8 páginas legacy | LOW | `forecast.md`, `performance.md`, `products.md` — duplicados aún sobre `fact_sales.order_count` inflado. Recomendado **borrar**. |
+| **C3** (API sin producto/categoría) | P0-concept | Filas API → `product_key=0 (UNKNOWN)`; `Item Name=None`, `Revenue Center=DayPartId`. Sin tocar. Items/Category/Attachment basura para fechas solo-API. |
+| **C4** (dos writers en `raw_par2`) | P0 | DELETE con semánticas incompatibles → clobber silencioso CSV↔API. Sin tocar. |
+| **C5** (watermark descarta backfill) | P0 | Incremental append+watermark pierde data tardía en silencio. Sin tocar. |
+| API tax dup | — | Tax order-level copiado por entry → `sum(tax)` multiplicado. Flagged, sin tocar. |
+
+### Repo snapshot
+Working tree limpio salvo docs/data sin commitear: los reports `.md` de arriba + `scripts/` + xlsx/csv de análisis ad-hoc (Grand Prairie, Westerville, Tampa, food sales). Sin código sin commitear. `main` sincronizado con origin @ `38eb355`. `forecasting/` = placeholder vacío.
