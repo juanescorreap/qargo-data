@@ -185,6 +185,34 @@ order by mom_growth_pct desc nulls last
 
 ## Net Sales by Store — All Periods
 
+```sql store_month_matrix
+-- Pivot: one row per store, one column per month (net sales). DuckDB PIVOT wrapped in a
+-- SELECT subquery so Evidence runs it as a normal query. Month columns are YYYY-MM, which
+-- sort chronologically as text.
+select *
+from (
+    pivot (
+        select
+            s.store_name,
+            d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
+            f.order_net_sales
+        from gold.fact_order f
+        join gold.dim_date  d on f.date_key  = d.date_key
+        join gold.dim_store s on f.store_key = s.store_key
+    )
+    on year_month
+    using sum(order_net_sales)
+    group by store_name
+)
+order by store_name
+```
+
+<DataTable data={store_month_matrix} rows=20 />
+
+---
+
+### Store Drill-down
+
 ```sql store_month_options
 -- distinct store list for the dropdown (all stores, alphabetical)
 select store_name from gold.dim_store order by store_name
