@@ -66,3 +66,25 @@ models:
           - not_null
       - name: tip_amount
         description: "Always 0 — no tip data in the current POS integration. Kept for forward-compatibility."
+
+  - name: fact_by_employee
+    description: >
+      One row per employee per store per day (grain = date_key + store_key + employee_key).
+      Rebuilds the dropped fact_sales_by_employee to restore per-employee metrics
+      (Up-selling Leaderboard, Discount Audit, Labor Efficiency, Top Employees).
+      Limitations: tip_amount is always 0; employee_key = 0 (UNKNOWN) absorbs unmapped
+      staff and any PAR API numeric IDs (excluded by dim_employee) — filter
+      employee_key <> 0 for named-employee leaderboards.
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: employee_key
+        description: "0 = UNKNOWN (unmapped names + PAR API numeric IDs). Filter <> 0 for named leaderboards."
+        tests:
+          - not_null
+      - name: tip_amount
+        description: "Always 0 — no tip data in the current POS integration. Kept for forward-compatibility."
