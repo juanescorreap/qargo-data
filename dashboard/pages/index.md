@@ -60,13 +60,13 @@ where d.year = extract(year from current_date)::int
 
 <BigValue data={kpi_current_month}    value=net_sales   title="Net Sales"       fmt=usd  />
 <BigValue data={kpi_current_month}    value=avg_ticket  title="Avg Ticket"      fmt=usd  />
-<BigValue data={kpi_items_current_month} value=items_sold title="Items Sold (net of returns)" />
+<BigValue data={kpi_items_current_month} value=items_sold title="Items Sold (net of returns)" fmt=num0 />
 
 ## Year to Date
 
 <BigValue data={kpi_ytd}           value=net_sales_ytd   title="Net Sales YTD"   fmt=usd />
 <BigValue data={kpi_ytd}           value=avg_ticket_ytd  title="Avg Ticket YTD"  fmt=usd />
-<BigValue data={kpi_items_ytd}     value=items_sold_ytd  title="Items Sold YTD (net of returns)" />
+<BigValue data={kpi_items_ytd}     value=items_sold_ytd  title="Items Sold YTD (net of returns)" fmt=num0 />
 
 ---
 

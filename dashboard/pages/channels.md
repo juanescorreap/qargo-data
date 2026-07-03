@@ -10,7 +10,7 @@ select
     round(sum(f.order_net_sales)::numeric, 2)                                              as net_sales,
     sum(f.order_count)                                                                     as order_count,
     round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)            as avg_ticket,
-    round((sum(f.order_net_sales) / sum(sum(f.order_net_sales)) over () * 100)::numeric, 1) as pct_of_total
+    round((sum(f.order_net_sales) / sum(sum(f.order_net_sales)) over ())::numeric, 4) as pct_of_total
 from gold.fact_order f
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date         d   on f.date_key        = d.date_key
@@ -47,7 +47,7 @@ order by net_sales desc
     <Column id=net_sales    title="Net Sales"    fmt=usd  />
     <Column id=order_count  title="Orders"                />
     <Column id=avg_ticket   title="Avg Ticket"   fmt=usd  />
-    <Column id=pct_of_total title="% of Total"            />
+    <Column id=pct_of_total title="% of Total"   fmt=pct1 />
 </DataTable>
 
 ---

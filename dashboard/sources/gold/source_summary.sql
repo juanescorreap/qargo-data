@@ -1,6 +1,7 @@
 select
     _source_system,
     count(distinct order_id)                                                          as order_count,
+    count(*)                                                                          as row_count,
     round(sum(net_sales)::numeric, 2)                                                 as net_sales,
     round(sum(tax_amount)::numeric, 2)                                                as tax_amount,
     round(sum(discount_total)::numeric, 2)                                            as discount_total,

@@ -124,6 +124,7 @@ order by d.year, d.quarter
     x=year_month
     y=net_sales
     title="Monthly Net Sales"
+    sort=false
 />
 
 ## Year-over-Year Comparison
@@ -134,6 +135,7 @@ order by d.year, d.quarter
     y=net_sales
     series=year
     title="Monthly Sales 2024, 2025, 2026"
+    sort=false
 />
 
 ## Month-over-Month Growth
@@ -150,6 +152,7 @@ order by d.year, d.quarter
     x=period
     y=net_sales
     title="Net Sales by Quarter"
+    sort=false
 />
 
 <DataTable data={quarterly_sales} />
@@ -161,6 +164,7 @@ order by d.year, d.quarter
     x=day_name
     y=avg_net_sales
     title="Avg Daily Sales by Day of Week"
+    sort=false
 />
 
 <BarChart
@@ -168,6 +172,7 @@ order by d.year, d.quarter
     x=day_name
     y=avg_ticket
     title="Avg Ticket by Day of Week"
+    sort=false
 />
 
 <DataTable data={day_of_week} />

@@ -34,11 +34,13 @@ order by year_month
     data={attachment_rate_kpi}
     value=beverage_orders
     title="Total Beverage Orders"
+    fmt=num0
 />
 <BigValue
     data={attachment_rate_kpi}
     value=paired_orders
     title="Orders with Food + Beverage"
+    fmt=num0
 />
 
 <LineChart
@@ -154,7 +156,7 @@ select
     p.revenue_center_name                                                             as revenue_center,
     sum(f.qty)                                                                         as total_qty,
     round(sum(f.item_net_sales)::numeric, 2)                                           as net_sales,
-    round((sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over () * 100)::numeric, 1) as pct_of_total
+    round((sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over ())::numeric, 4) as pct_of_total
 from gold.fact_sale_item f
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
@@ -171,5 +173,5 @@ order by net_sales desc
     <Column id=revenue_center title="Category"           />
     <Column id=total_qty      title="Total Qty"          />
     <Column id=net_sales      title="Net Sales" fmt=usd  />
-    <Column id=pct_of_total   title="% of Total"         />
+    <Column id=pct_of_total   title="% of Total" fmt=pct1 />
 </DataTable>

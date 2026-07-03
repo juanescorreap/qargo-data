@@ -6,7 +6,9 @@ title: Data Quality & Reconciliation
 select
     _source_system    as source,
     order_count,
+    row_count,
     net_sales,
+    round(net_sales / nullif(row_count, 0), 2)  as avg_net_sales_per_row,
     tax_amount,
     discount_total,
     null_destination,

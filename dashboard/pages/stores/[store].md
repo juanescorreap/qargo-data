@@ -1,6 +1,4 @@
----
-title: '{params.store}'
----
+# {params.store}
 
 ```sql store_kpis
 -- C1 cutover: avg_ticket from fact_order (additive order count)
@@ -113,7 +111,7 @@ order by d.year, d.month, d.day_of_week
 select
     p.revenue_center_name,
     round(sum(f.item_net_sales)::numeric, 2)                                                  as net_sales,
-    round(sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over () * 100, 1)                as pct_of_total
+    round((sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over ())::numeric, 4)           as pct_of_total
 from gold.fact_sale_item f
 join gold.dim_store   s on f.store_key   = s.store_key
 join gold.dim_product p on f.product_key = p.product_key
@@ -135,6 +133,7 @@ order by net_sales desc
     data={category_mix}
     x=revenue_center_name
     y=pct_of_total
+    yFmt=pct1
     title="Beverage vs Food vs Retail (% of Sales)"
     labels=true
 />
@@ -142,7 +141,7 @@ order by net_sales desc
 <DataTable data={category_mix}>
     <Column id=revenue_center_name title="Category"        />
     <Column id=net_sales           title="Net Sales" fmt=usd />
-    <Column id=pct_of_total        title="% of Total"      />
+    <Column id=pct_of_total        title="% of Total" fmt=pct1 />
 </DataTable>
 
 ---

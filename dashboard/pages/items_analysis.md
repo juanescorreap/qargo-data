@@ -24,9 +24,21 @@ order by sort_order
     defaultValue="All Stores"
 />
 
+```sql date_span
+-- Bounds for the DateRange picker. Without data/dates the input never initializes,
+-- so ${inputs.date_range.start/end} stay undefined and every query on the page errors
+-- (blank page). Feed it the min/max sale date so the range defaults to the data span.
+select min(d.date) as date
+from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
+union all
+select max(d.date)
+from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
+```
+
 <DateRange
     name="date_range"
-    defaultValue="Last 365 Days"
+    data={date_span}
+    dates=date
     title="Date Range"
 />
 
@@ -108,7 +120,7 @@ select
     f.revenue_center_name,
     round(f.net_sales::numeric, 2)                                                   as net_sales,
     f.items_sold,
-    round((f.net_sales / nullif(t.total_net_sales, 0) * 100)::numeric, 1)           as pct_of_sales
+    round((f.net_sales / nullif(t.total_net_sales, 0))::numeric, 4)                  as pct_of_sales
 from filtered f
 cross join totals t
 where f.net_sales > 0
@@ -123,7 +135,7 @@ limit 200
     <Column id=revenue_center_name    title="Category"         />
     <Column id=net_sales              title="Net Sales" fmt=usd />
     <Column id=items_sold             title="Items Sold"        />
-    <Column id=pct_of_sales           title="% of Sales"        />
+    <Column id=pct_of_sales           title="% of Sales" fmt=pct1 />
 </DataTable>
 
 <BarChart
