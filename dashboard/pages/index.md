@@ -31,7 +31,8 @@ from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int
-  and d.date <= current_date```
+  and d.date <= current_date
+```
 
 ```sql kpi_items_current_month
 -- C2 cutover: real Items Sold = sum(qty), net of returns, from fact_sale_item
@@ -52,7 +53,8 @@ from gold.fact_sale_item f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int
-  and d.date <= current_date```
+  and d.date <= current_date
+```
 
 ## Current Month
 
@@ -80,7 +82,8 @@ where d.date >= (
     select max(d2.date) - interval '89 days'
     from gold.dim_date d2
     join gold.fact_order f2 on d2.date_key = f2.date_key
-)group by d.date
+)
+group by d.date
 order by d.date
 ```
 
