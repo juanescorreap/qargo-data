@@ -28,7 +28,7 @@ order by sort_order
 -- Bounds for the DateRange picker. Without data/dates the input never initializes,
 -- so ${inputs.date_range.start/end} stay undefined and every query on the page errors
 -- (blank page). Feed it the min/max sale date so the range defaults to the data span.
-select min(d.date) as date
+select min(d.date) as sale_date
 from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
 union all
 select max(d.date)
@@ -38,7 +38,7 @@ from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
 <DateRange
     name="date_range"
     data={date_span}
-    dates=date
+    dates=sale_date
     title="Date Range"
 />
 
