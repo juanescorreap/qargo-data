@@ -36,8 +36,17 @@ order by net_sales desc
 <BarChart
     data={channel_comparison}
     x=channel
-    y={["net_sales","avg_ticket"]}
-    title="Net Sales and Avg Ticket by Channel"
+    y=net_sales
+    title="Net Sales by Channel"
+    yFmt=usd
+    sort=true
+/>
+
+<BarChart
+    data={channel_comparison}
+    x=channel
+    y=avg_ticket
+    title="Avg Ticket by Channel"
     yFmt=usd
     sort=true
 />

@@ -24,6 +24,8 @@ order by year_month
 
 ## Food Attachment Rate
 
+> **Food Attach Rate** = % of beverage orders that also include at least one food item. Calculated as: Orders with Food + Beverage / Total Beverage Orders.
+
 <BigValue
     data={attachment_rate_kpi}
     value=attachment_rate_pct

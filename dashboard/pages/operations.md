@@ -25,6 +25,8 @@ join gold.dim_date d on fbe.date_key = d.date_key
 
 ## Up-selling Leaderboard — Highest Avg Ticket
 
+> **Up-selling score** = Average ticket per employee (Net Sales ÷ Orders). Employees with ≥20 orders in the period. Higher avg ticket = more effective upselling or higher-value items sold.
+
 Baristas ranked by average ticket — a proxy for successfully suggesting size upgrades,
 modifiers, and food attachments.
 
