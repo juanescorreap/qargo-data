@@ -54,12 +54,41 @@ order by year_month, source
 
 ---
 
-<!--
-TODO: "UNKNOWN employee" tracking needs per-employee grain from
-gold.fact_sales_by_employee, dropped in the C5 space reduction. Restore via a
-fact_by_employee model (next epic). Temporarily disabled. Unknown-destination
-tracking below still works (fact_order carries destination_key).
--->
+```sql unknown_employee_by_month
+-- Rehabilitated via gold.fact_by_employee. Tracks the share of net sales attributed to
+-- UNKNOWN staff (employee_key = 0: unmapped names + PAR API numeric IDs). A rising trend
+-- signals an upstream fracture in employee-name ingestion.
+select
+    d.year || '-' || lpad(d.month::text, 2, '0')                                            as year_month,
+    round(sum(fbe.net_sales) filter (where fbe.employee_key = 0)::numeric, 2)                as unknown_net_sales,
+    round(sum(fbe.net_sales)::numeric, 2)                                                    as total_net_sales,
+    round((sum(fbe.net_sales) filter (where fbe.employee_key = 0)
+           / nullif(sum(fbe.net_sales), 0) * 100)::numeric, 1)                               as unknown_pct
+from gold.fact_by_employee fbe
+join gold.dim_date d on fbe.date_key = d.date_key
+group by d.year, d.month
+order by d.year, d.month
+```
+
+```sql unknown_employee_by_store
+-- Same metric by store for the most recent month in the data.
+select
+    s.store_name,
+    round(sum(fbe.net_sales) filter (where fbe.employee_key = 0)::numeric, 2)                as unknown_net_sales,
+    round(sum(fbe.net_sales)::numeric, 2)                                                    as total_net_sales,
+    round((sum(fbe.net_sales) filter (where fbe.employee_key = 0)
+           / nullif(sum(fbe.net_sales), 0) * 100)::numeric, 1)                               as unknown_pct
+from gold.fact_by_employee fbe
+join gold.dim_store s on fbe.store_key = s.store_key
+join gold.dim_date  d on fbe.date_key  = d.date_key
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.fact_by_employee f2
+    join gold.dim_date d2 on f2.date_key = d2.date_key
+)
+group by s.store_name
+order by unknown_pct desc nulls last
+```
 
 ```sql unknown_destination
 select
@@ -87,7 +116,28 @@ select
 <BigValue data={unknown_totals} value=unknown_employee_rows title="UNKNOWN Employee Rows in dim_employee" />
 <BigValue data={unknown_totals} value=unknown_dest_orders   title="Orders with Unknown Destination (all time)" />
 
-_% Orders with UNKNOWN Employee estará disponible próximamente (requiere `fact_by_employee`)._
+### UNKNOWN Employee — % of Net Sales
+
+> Share of net sales booked to UNKNOWN staff (`employee_key = 0`: unmapped names + PAR
+> API numeric IDs). A rising trend flags an upstream employee-name ingestion fracture.
+
+<LineChart
+    data={unknown_employee_by_month}
+    x=year_month
+    y=unknown_pct
+    title="% Net Sales with Unknown Employee — Monthly"
+/>
+
+<DataTable data={unknown_employee_by_store} title="Unknown Employee by Store — Most Recent Month">
+    <Column id=store_name        title="Store"                    />
+    <Column id=unknown_net_sales title="Unknown Net Sales" fmt=usd />
+    <Column id=total_net_sales   title="Total Net Sales"   fmt=usd />
+    <Column id=unknown_pct       title="Unknown %"                 />
+</DataTable>
+
+---
+
+### Unknown Destination — Monthly
 
 <LineChart
     data={unknown_destination}
