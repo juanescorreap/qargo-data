@@ -71,7 +71,7 @@ select
     round(sum(fbe.discount_total)::numeric, 2)                                          as discount_total,
     round(sum(fbe.net_sales)::numeric, 2)                                               as net_sales,
     round((sum(fbe.discount_total)
-           / nullif(sum(fbe.net_sales + fbe.discount_total), 0) * 100)::numeric, 1)     as discount_pct
+           / nullif(sum(fbe.net_sales + fbe.discount_total), 0))::numeric, 4)           as discount_pct
 from gold.fact_by_employee fbe
 join gold.dim_employee e on fbe.employee_key = e.employee_key
 join gold.dim_store    s on fbe.store_key    = s.store_key
@@ -90,7 +90,7 @@ limit 20
     <Column id=store_name     title="Store"               />
     <Column id=discount_total title="Discounts"   fmt=usd />
     <Column id=net_sales      title="Net Sales"   fmt=usd />
-    <Column id=discount_pct   title="Discount %"          />
+    <Column id=discount_pct   title="Discount %"  fmt=pct1 />
 </DataTable>
 
 ---
