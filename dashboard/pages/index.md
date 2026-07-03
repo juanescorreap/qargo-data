@@ -28,7 +28,11 @@ select
 from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
+  )
   and (
       '${inputs.store_filter}' = 'All Stores'
       or '${inputs.store_filter}' = ''
@@ -60,7 +64,11 @@ select sum(f.qty) as items_sold
 from gold.fact_sale_item f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_sale_item f2 on d2.date_key = f2.date_key
+  )
   and (
       '${inputs.store_filter}' = 'All Stores'
       or '${inputs.store_filter}' = ''
@@ -131,7 +139,13 @@ order by d.date
 ---
 
 ```sql store_leaderboard_mom
-with monthly as (
+with anchor as (
+    -- Latest month WITH data (data ends 2026-06-30) — replaces current_date so the
+    -- "This Month" column and MoM% are not empty in the July-vs-June gap.
+    select date_trunc('month', max(d.date)) as m
+    from gold.dim_date d join gold.fact_order f on d.date_key = f.date_key
+),
+monthly as (
     select
         s.store_name,
         date_trunc('month', d.date) as month_start,
@@ -139,14 +153,14 @@ with monthly as (
     from gold.fact_order f
     join gold.dim_date  d on f.date_key  = d.date_key
     join gold.dim_store s on f.store_key = s.store_key
-    where date_trunc('month', d.date) >= date_trunc('month', current_date) - interval '1 month'
+    where date_trunc('month', d.date) >= (select m from anchor) - interval '1 month'
     group by s.store_name, date_trunc('month', d.date)
 ),
 pivoted as (
     select
         store_name,
-        sum(net_sales) filter (where month_start = date_trunc('month', current_date))                  as current_month,
-        sum(net_sales) filter (where month_start = date_trunc('month', current_date) - interval '1 month') as prev_month
+        sum(net_sales) filter (where month_start = (select m from anchor))                  as current_month,
+        sum(net_sales) filter (where month_start = (select m from anchor) - interval '1 month') as prev_month
     from monthly
     group by store_name
 )
@@ -199,7 +213,11 @@ select
 from gold.fact_by_employee fbe
 join gold.dim_store s on fbe.store_key = s.store_key
 join gold.dim_date  d on fbe.date_key  = d.date_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_by_employee f2 on d2.date_key = f2.date_key
+  )
   and (
       '${inputs.store_filter}' = 'All Stores'
       or '${inputs.store_filter}' = ''
@@ -231,7 +249,11 @@ select
 from gold.fact_order f
 join gold.dim_store s on f.store_key = s.store_key
 join gold.dim_date  d on f.date_key  = d.date_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
+  )
 group by s.store_name, s.royalty_rate
 order by royalty_due desc
 ```

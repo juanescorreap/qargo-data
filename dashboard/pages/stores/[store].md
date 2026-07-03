@@ -10,7 +10,11 @@ select
 from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
+  )
   and s.store_name = '${params.store}'
 ```
 
@@ -114,7 +118,11 @@ from gold.fact_sale_item f
 join gold.dim_store   s on f.store_key   = s.store_key
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_sale_item f2 on d2.date_key = f2.date_key
+  )
   and s.store_name = '${params.store}'
   and p.revenue_center_name in ('Beverage','Food','Retail')
 group by p.revenue_center_name
@@ -150,7 +158,11 @@ from gold.fact_order f
 join gold.dim_store       s    on f.store_key       = s.store_key
 join gold.dim_destination dest on f.destination_key = dest.destination_key
 join gold.dim_date        d    on f.date_key        = d.date_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
+-- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+where date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
+  )
   and s.store_name = '${params.store}'
   and dest.channel <> 'Unknown'
 group by dest.channel
@@ -190,7 +202,11 @@ join gold.dim_employee e on fbe.employee_key = e.employee_key
 join gold.dim_date     d on fbe.date_key     = d.date_key
 where s.store_name = '${params.store}'
   and fbe.employee_key <> 0
-  and date_trunc('month', d.date) = date_trunc('month', current_date)
+  -- Anchor to the latest month WITH data (data ends 2026-06-30), not current_date.
+  and date_trunc('month', d.date) = (
+    select date_trunc('month', max(d2.date))
+    from gold.dim_date d2 join gold.fact_by_employee f2 on d2.date_key = f2.date_key
+  )
 group by e.employee_name
 order by net_sales desc
 limit 10
