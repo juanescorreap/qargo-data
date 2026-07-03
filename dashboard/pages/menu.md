@@ -58,7 +58,7 @@ order by year_month
 ```sql retail_evolution
 -- Migrated off deprecated fact_sales to fact_sale_item (product-grain net sales).
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                   as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')   as year_month,
     round(sum(f.item_net_sales)::numeric, 2)                        as net_sales,
     sum(f.qty)                                                      as items_sold
 from gold.fact_sale_item f
@@ -73,7 +73,7 @@ order by d.year, d.month
 ```sql product_mix_by_category
 -- Migrated off deprecated fact_sales to fact_sale_item (product-grain net sales).
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                   as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')   as year_month,
     p.revenue_center_name,
     round(sum(f.item_net_sales)::numeric, 2)                        as net_sales
 from gold.fact_sale_item f

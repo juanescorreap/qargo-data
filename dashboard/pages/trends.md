@@ -7,7 +7,7 @@ select
     d.year,
     d.month,
     d.month_name,
-    d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0') as year_month,
     round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count
 from gold.fact_order f
@@ -22,7 +22,7 @@ with monthly as (
         d.year,
         d.month,
         d.month_name,
-        d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
+        lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0') as year_month,
         round(sum(f.order_net_sales)::numeric, 2)     as net_sales,
         sum(f.order_count)                            as order_count
     from gold.fact_order f
@@ -107,7 +107,7 @@ order by d.is_weekend
 select
     d.year,
     d.quarter,
-    d.year || ' Q' || d.quarter                 as period,
+    d.year::int::text || ' Q' || d.quarter::int::text          as period,
     round(sum(f.order_net_sales)::numeric, 2)    as net_sales,
     sum(f.order_count)                           as order_count,
     round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2) as avg_ticket

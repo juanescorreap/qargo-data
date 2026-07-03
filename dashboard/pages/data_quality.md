@@ -61,7 +61,7 @@ order by year_month, source
 -- UNKNOWN staff (employee_key = 0: unmapped names + PAR API numeric IDs). A rising trend
 -- signals an upstream fracture in employee-name ingestion.
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                            as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')                                            as year_month,
     round(sum(fbe.net_sales) filter (where fbe.employee_key = 0)::numeric, 2)                as unknown_net_sales,
     round(sum(fbe.net_sales)::numeric, 2)                                                    as total_net_sales,
     round((sum(fbe.net_sales) filter (where fbe.employee_key = 0)
@@ -94,7 +94,7 @@ order by unknown_pct desc nulls last
 
 ```sql unknown_destination
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                      as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')                                      as year_month,
     sum(case when f.destination_key = 0 then f.order_count else 0 end)                as unknown_dest_orders,
     sum(f.order_count)                                                                  as total_orders,
     round(

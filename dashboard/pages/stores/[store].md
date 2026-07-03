@@ -66,7 +66,7 @@ select
     d.month_name                                                  as month_name,
     d.month                                                       as month_num,
     d.year                                                        as year,
-    d.year || ' ' || d.month_name                                 as period,
+    d.year::int::text || ' ' || d.month_name                      as period,
     round(avg(daily.net_sales)::numeric, 2)                      as avg_daily_sales,
     round(avg(daily.order_count)::numeric, 1)                    as avg_orders
 from (

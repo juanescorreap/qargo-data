@@ -194,7 +194,7 @@ from (
     pivot (
         select
             s.store_name,
-            d.year || '-' || lpad(d.month::text, 2, '0') as year_month,
+            lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0') as year_month,
             f.order_net_sales
         from gold.fact_order f
         join gold.dim_date  d on f.date_key  = d.date_key
@@ -231,7 +231,7 @@ select store_name from gold.dim_store order by store_name
 select
     s.store_name,
     date_trunc('month', d.date)::date               as month,
-    d.year || '-' || lpad(d.month::text, 2, '0')   as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')   as year_month,
     round(sum(f.order_net_sales)::numeric, 2)       as net_sales
 from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key

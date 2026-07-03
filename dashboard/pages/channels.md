@@ -112,7 +112,7 @@ order by discount_total desc
 ```sql drivethu_monthly
 -- C1 cutover: fact_order (order count + avg_ticket by channel/month)
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                 as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')                                 as year_month,
     round(sum(f.order_net_sales)::numeric, 2)                                    as net_sales,
     sum(f.order_count)                                                           as order_count,
     round((sum(f.order_net_sales) / nullif(sum(f.order_count), 0))::numeric, 2)  as avg_ticket
@@ -155,7 +155,7 @@ order by d.year, d.month
 
 ```sql unknown_destination_trend
 select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                                    as year_month,
+    lpad(d.year::int::text, 4, '0') || '-' || lpad(d.month::int::text, 2, '0')                                                    as year_month,
     sum(case when dest.destination_key = 0 then f.order_count else 0 end)                           as unknown_orders,
     sum(f.order_count)                                                                               as total_orders,
     round(
