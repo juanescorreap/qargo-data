@@ -2,21 +2,7 @@
 title: Executive Overview
 ---
 
-```sql store_list
-select 'All Stores' as store_name, 0 as sort_order
-union all
-select store_name, 1 as sort_order from gold.dim_store
-order by sort_order, store_name
-```
-
-<Dropdown
-    name="store_filter"
-    data={store_list}
-    value="store_name"
-    label="store_name"
-    title="Store"
-    defaultValue="All Stores"
-/>
+_Executive Overview — brand-wide totals across all stores. Use the Store Directory below to drill into a specific location._
 
 ```sql kpi_current_month
 -- C1 cutover: order_count + avg_ticket from fact_order (additive). net_sales here is
@@ -33,11 +19,6 @@ where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
   )
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
 ```
 
 ```sql kpi_ytd
@@ -50,13 +31,7 @@ from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int
-  and d.date <= current_date
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
-```
+  and d.date <= current_date```
 
 ```sql kpi_items_current_month
 -- C2 cutover: real Items Sold = sum(qty), net of returns, from fact_sale_item
@@ -69,11 +44,6 @@ where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2 join gold.fact_sale_item f2 on d2.date_key = f2.date_key
   )
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
 ```
 
 ```sql kpi_items_ytd
@@ -82,13 +52,7 @@ from gold.fact_sale_item f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int
-  and d.date <= current_date
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
-```
+  and d.date <= current_date```
 
 ## Current Month
 
@@ -116,13 +80,7 @@ where d.date >= (
     select max(d2.date) - interval '89 days'
     from gold.dim_date d2
     join gold.fact_order f2 on d2.date_key = f2.date_key
-)
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
-group by d.date
+)group by d.date
 order by d.date
 ```
 
@@ -140,22 +98,16 @@ order by d.date
 
 ```sql net_sales_ytd_daily
 -- Cumulative (running) net sales for the year-to-date, anchored to the latest year WITH
--- data (data ends 2026-06-30), reacting to the store filter.
+-- data (data ends 2026-06-30). Global (all stores) — Executive Overview shows brand totals.
 with daily as (
     select
         d.date,
         sum(f.order_net_sales) as net_sales
     from gold.fact_order f
     join gold.dim_date  d on f.date_key  = d.date_key
-    join gold.dim_store s on f.store_key = s.store_key
     where d.year = (
         select extract(year from max(d2.date))::int
         from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
-      )
-      and (
-          '${inputs.store_filter}' = 'All Stores'
-          or '${inputs.store_filter}' = ''
-          or s.store_name = '${inputs.store_filter}'
       )
     group by d.date
 )
@@ -258,13 +210,7 @@ join gold.dim_date  d on fbe.date_key  = d.date_key
 where date_trunc('month', d.date) = (
     select date_trunc('month', max(d2.date))
     from gold.dim_date d2 join gold.fact_by_employee f2 on d2.date_key = f2.date_key
-  )
-  and (
-      '${inputs.store_filter}' = 'All Stores'
-      or '${inputs.store_filter}' = ''
-      or s.store_name = '${inputs.store_filter}'
-  )
-group by s.store_name
+  )group by s.store_name
 order by sales_per_employee desc nulls last
 ```
 
