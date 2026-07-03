@@ -162,6 +162,7 @@ pivoted as (
 )
 select
     store_name,
+    '/stores/' || store_name          as store_url,
     round(current_month::numeric, 2)  as current_month_sales,
     round(prev_month::numeric, 2)     as prev_month_sales,
     round(
@@ -171,26 +172,13 @@ from pivoted
 order by mom_growth_pct desc nulls last
 ```
 
-## Store Leaderboard — Month-over-Month Growth
+## Store Directory — Month-over-Month Growth
 
-```sql store_links
-select
-    store_name,
-    '/stores/' || store_name   as store_url
-from gold.dim_store
-order by store_name
-```
-
-<DataTable data={store_links} link=store_url title="Store Directory" rows=30 />
-
-<DataTable
-    data={store_leaderboard_mom}
-    rows=20
->
-    <Column id=store_name      title="Store"             />
-    <Column id=current_month_sales title="This Month"   fmt=usd />
-    <Column id=prev_month_sales    title="Prev Month"   fmt=usd />
-    <Column id=mom_growth_pct      title="MoM Growth %"  fmt=pct1 />
+<DataTable data={store_leaderboard_mom} link=store_url rows=30 title="Click a store to open its detail page">
+    <Column id=store_name          title="Store"                    />
+    <Column id=current_month_sales title="This Month"       fmt=usd  />
+    <Column id=prev_month_sales    title="Prev Month"       fmt=usd  />
+    <Column id=mom_growth_pct      title="MoM Growth %"     fmt=pct1 />
 </DataTable>
 
 ---
