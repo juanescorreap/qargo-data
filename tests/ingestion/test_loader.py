@@ -37,11 +37,15 @@ def _make_ingester(
     date_column="Date",
     files: list[Path] | None = None,
     df: pd.DataFrame | None = None,
+    scope_column=None,
 ):
     ingester = MagicMock()
     ingester.source_name = source_name
     ingester.target_table = target_table
     ingester.date_column = date_column
+    # Default None mirrors the base class: unscoped date-range delete. MagicMock would
+    # otherwise auto-return a truthy Mock and trip the scoping branch in the loader.
+    ingester.scope_column = scope_column
     ingester.list_files.return_value = files or []
     ingester.extract_file.return_value = df if df is not None else pd.DataFrame()
     return ingester
@@ -263,6 +267,83 @@ class TestLoadExistingTable:
         params = delete_calls[0].args[1]
         assert params["min_d"] == date(2025, 1, 1)
         assert params["max_d"] == date(2025, 1, 31)
+
+
+# ---------------------------------------------------------------------------
+# load() — per-partition scoped DELETE (LS2 cross-store clobber guard)
+# ---------------------------------------------------------------------------
+
+
+class TestLoadScopedDelete:
+    def _scoped_df(self, store="Qargo Coffee Berkeley"):
+        return pd.DataFrame({
+            "Date": [date(2025, 1, 1), date(2025, 1, 31)],
+            "Net Sales": [1.0, 2.0],
+            "Order ID": ["A", "B"],
+            "Location": [store, store],
+        })
+
+    @patch("ingestion.loader.WatermarkManager")
+    def test_unscoped_delete_has_no_store_predicate(self, MockWM, tmp_path):
+        # scope_column=None (default, e.g. PAR CSV) → date-range-only DELETE, no store clause.
+        csv = tmp_path / "DDBB_Jan_25.csv"
+        csv.touch()
+        engine, conn = _make_engine(table_exists=True)
+        MockWM.return_value.get_processed.return_value = set()
+        ingester = _make_ingester(files=[csv], df=_sample_df(), scope_column=None)
+
+        loader = FileBasedLoader(engine, tmp_path)
+        with patch.object(pd.DataFrame, "to_sql"):
+            loader.load(ingester)
+
+        delete = next(c for c in conn.execute.call_args_list if "DELETE" in str(c.args[0]))
+        assert "Location" not in str(delete.args[0])
+        assert "scope_val" not in delete.args[1]
+
+    @patch("ingestion.loader.WatermarkManager")
+    def test_scoped_delete_adds_store_predicate(self, MockWM, tmp_path):
+        csv = tmp_path / "qargocoffee-hqaccount_qargocoffeeberkeley_transactions_x.csv"
+        csv.touch()
+        engine, conn = _make_engine(table_exists=True)
+        MockWM.return_value.get_processed.return_value = set()
+        ingester = _make_ingester(
+            source_name="ls2", target_table="raw_ls2", files=[csv],
+            df=self._scoped_df(), scope_column="Location",
+        )
+
+        loader = FileBasedLoader(engine, tmp_path)
+        with patch.object(pd.DataFrame, "to_sql"):
+            loader.load(ingester)
+
+        delete = next(c for c in conn.execute.call_args_list if "DELETE" in str(c.args[0]))
+        sql = str(delete.args[0])
+        assert 'AND "Location" = :scope_val' in sql
+        assert delete.args[1]["scope_val"] == "Qargo Coffee Berkeley"
+        assert delete.args[1]["min_d"] == date(2025, 1, 1)
+        assert delete.args[1]["max_d"] == date(2025, 1, 31)
+
+    @patch("ingestion.loader.WatermarkManager")
+    def test_scoped_delete_rejects_multi_value_file(self, MockWM, tmp_path):
+        # A file that mixes two stores must NOT run an unscoped-range delete silently.
+        csv = tmp_path / "mixed.csv"
+        csv.touch()
+        engine, _ = _make_engine(table_exists=True)
+        MockWM.return_value.get_processed.return_value = set()
+        df = pd.DataFrame({
+            "Date": [date(2025, 1, 1), date(2025, 1, 2)],
+            "Net Sales": [1.0, 2.0],
+            "Order ID": ["A", "B"],
+            "Location": ["Store A", "Store B"],
+        })
+        ingester = _make_ingester(
+            source_name="ls2", target_table="raw_ls2", files=[csv],
+            df=df, scope_column="Location",
+        )
+
+        loader = FileBasedLoader(engine, tmp_path)
+        with patch.object(pd.DataFrame, "to_sql"):
+            with pytest.raises(ValueError, match="exactly ONE value"):
+                loader.load(ingester)
 
 
 # ---------------------------------------------------------------------------

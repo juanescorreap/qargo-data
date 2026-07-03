@@ -80,6 +80,13 @@ class LS2CSVIngester(FileBasedIngester):
     def date_column(self) -> str:
         return "Date"
 
+    @property
+    def scope_column(self) -> str | None:
+        # LS2 = one store per file (Location derived from the filename). Scope the
+        # incremental DELETE by store so loading store A's file cannot clobber store B's
+        # rows in the same date range (raw_ls2 is a single shared table across stores).
+        return "Location"
+
     def list_files(self, data_dir: Path) -> list[Path]:
         return sorted(data_dir.glob("qargocoffee-hqaccount_*_transactions_*.csv"))
 
