@@ -202,19 +202,20 @@ select store_name from gold.dim_store order by store_name
 -- Net sales per month for the selected store (all available months).
 select
     s.store_name,
+    date_trunc('month', d.date)::date               as month,
     d.year || '-' || lpad(d.month::text, 2, '0')   as year_month,
     round(sum(f.order_net_sales)::numeric, 2)       as net_sales
 from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where s.store_name = '${inputs.store_filter_2.value}'
-group by s.store_name, d.year, d.month
-order by d.year, d.month
+group by s.store_name, date_trunc('month', d.date), d.year, d.month
+order by month
 ```
 
 <LineChart
     data={store_monthly_sales}
-    x=year_month
+    x=month
     y=net_sales
     title="Monthly Net Sales — {inputs.store_filter_2.value}"
     yFmt=usd
