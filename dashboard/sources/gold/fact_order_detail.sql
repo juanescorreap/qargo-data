@@ -1,0 +1,1 @@
+select * from gold.fact_order_detail

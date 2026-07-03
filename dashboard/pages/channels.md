@@ -52,15 +52,51 @@ order by net_sales desc
 
 ---
 
-## Delivery Leakage — Net Sales vs Discounts
+```sql delivery_leakage
+-- Rehabilitated via fact_order_detail (discount_total per order), JOINed 1:1 to
+-- fact_order on (source_system, order_id). Exposes promo margin erosion on 3rd-party
+-- delivery channels: net sales vs discounts issued.
+select
+    dest.destination_name,
+    round(sum(f.order_net_sales)::numeric, 2)                                            as net_sales,
+    round(sum(fod.discount_total)::numeric, 2)                                           as discount_total,
+    round((sum(fod.discount_total)
+           / nullif(sum(f.order_net_sales + fod.discount_total), 0) * 100)::numeric, 1)  as discount_leakage_pct
+from gold.fact_order f
+join gold.fact_order_detail fod
+    on f.source_system = fod.source_system and f.order_id = fod.order_id
+join gold.dim_destination dest on f.destination_key = dest.destination_key
+join gold.dim_date         d   on f.date_key        = d.date_key
+where dest.channel = 'Delivery'
+  and date_trunc('month', d.date) = (
+      select date_trunc('month', max(d2.date))
+      from gold.dim_date d2
+      join gold.fact_order f2 on d2.date_key = f2.date_key
+  )
+group by dest.destination_name
+order by discount_total desc
+```
 
-<!--
-TODO: Delivery Leakage needs discount_total, which lived only in gold.fact_sales
-(dropped in the C5 space reduction). Restore via a fact_order_detail model carrying
-discount_total/tax_amount/tip_amount (next epic). Temporarily disabled.
--->
+## Delivery Leakage — Net Sales vs Discounts (Most Recent Month)
 
-_Esta métrica estará disponible próximamente._
+> LS2 orders carry no destination and fall under the UNKNOWN channel, so they are
+> excluded here — delivery-channel figures reflect PAR-sourced orders only.
+
+<BarChart
+    data={delivery_leakage}
+    x=destination_name
+    y={["net_sales","discount_total"]}
+    title="Net Sales vs Discounts — Delivery Channels"
+    yFmt=usd
+    sort=false
+/>
+
+<DataTable data={delivery_leakage}>
+    <Column id=destination_name    title="Delivery Channel"       />
+    <Column id=net_sales           title="Net Sales"      fmt=usd />
+    <Column id=discount_total      title="Discounts"      fmt=usd />
+    <Column id=discount_leakage_pct title="Leakage %"             />
+</DataTable>
 
 ---
 

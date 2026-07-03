@@ -185,15 +185,40 @@ order by store_name
 
 ---
 
+```sql labor_efficiency
+-- Rehabilitated via fact_by_employee (per employee/store/day grain). Score = named
+-- net sales / active named employees. employee_key = 0 (UNKNOWN: PAR API numeric IDs
+-- + unmapped staff) is excluded from both numerator and the employee count.
+select
+    s.store_name,
+    round(sum(fbe.net_sales) filter (where fbe.employee_key <> 0)::numeric, 2)          as net_sales,
+    count(distinct fbe.employee_key) filter (where fbe.employee_key <> 0)               as active_employees,
+    round((sum(fbe.net_sales) filter (where fbe.employee_key <> 0)
+           / nullif(count(distinct fbe.employee_key) filter (where fbe.employee_key <> 0), 0))::numeric, 2)
+                                                                                        as sales_per_employee
+from gold.fact_by_employee fbe
+join gold.dim_store s on fbe.store_key = s.store_key
+join gold.dim_date  d on fbe.date_key  = d.date_key
+where date_trunc('month', d.date) = date_trunc('month', current_date)
+  and (
+      '${inputs.store_filter}' = 'All Stores'
+      or '${inputs.store_filter}' = ''
+      or s.store_name = '${inputs.store_filter}'
+  )
+group by s.store_name
+order by sales_per_employee desc nulls last
+```
+
 ## Labor Efficiency — Current Month
 
-<!--
-TODO: Labor Efficiency (net sales per active employee) needs the per-employee grain
-from gold.fact_sales_by_employee, dropped in the C5 space reduction. Restore via a
-fact_order_detail / fact_by_employee model (next epic). Temporarily disabled.
--->
+> Excludes PAR API rows (employee unknown). Score = net sales per active named employee.
 
-_Esta métrica estará disponible próximamente._
+<DataTable data={labor_efficiency} rows=20>
+    <Column id=store_name         title="Store"                    />
+    <Column id=net_sales          title="Net Sales"        fmt=usd />
+    <Column id=active_employees   title="Active Employees"         />
+    <Column id=sales_per_employee title="Sales / Employee" fmt=usd />
+</DataTable>
 
 ---
 

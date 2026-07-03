@@ -177,12 +177,32 @@ order by net_sales desc
 
 ---
 
+```sql top_employees
+-- Rehabilitated via fact_by_employee. UNKNOWN (employee_key = 0) excluded.
+select
+    e.employee_name,
+    round(sum(fbe.net_sales)::numeric, 2)                                        as net_sales,
+    sum(fbe.order_count)                                                         as orders,
+    round((sum(fbe.net_sales) / nullif(sum(fbe.order_count), 0))::numeric, 2)    as avg_ticket
+from gold.fact_by_employee fbe
+join gold.dim_store    s on fbe.store_key    = s.store_key
+join gold.dim_employee e on fbe.employee_key = e.employee_key
+join gold.dim_date     d on fbe.date_key     = d.date_key
+where s.store_name = '${params.store}'
+  and fbe.employee_key <> 0
+  and date_trunc('month', d.date) = date_trunc('month', current_date)
+group by e.employee_name
+order by net_sales desc
+limit 10
+```
+
 ## Top Employees — This Month
 
-<!--
-TODO: Top Employees needs the per-employee grain from gold.fact_sales_by_employee,
-dropped in the C5 space reduction. Restore via a fact_by_employee model (next epic).
-Temporarily disabled.
--->
+> PAR API rows excluded (employee unknown).
 
-_Esta métrica estará disponible próximamente._
+<DataTable data={top_employees}>
+    <Column id=employee_name title="Employee"          />
+    <Column id=net_sales     title="Net Sales" fmt=usd />
+    <Column id=orders        title="Orders"            />
+    <Column id=avg_ticket    title="Avg Ticket" fmt=usd />
+</DataTable>
