@@ -16,8 +16,8 @@ select
     count(*) filter (where has_beverage = 1 and has_food = 1)                        as paired_orders,
     round(
         count(*) filter (where has_beverage = 1 and has_food = 1)::numeric
-        / nullif(count(*) filter (where has_beverage = 1), 0) * 100,
-        1
+        / nullif(count(*) filter (where has_beverage = 1), 0),
+        4
     )                                                                                 as attachment_rate_pct
 from order_categories
 group by date_trunc('month', sale_date)

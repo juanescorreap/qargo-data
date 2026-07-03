@@ -165,7 +165,7 @@ select
     round(current_month::numeric, 2)  as current_month_sales,
     round(prev_month::numeric, 2)     as prev_month_sales,
     round(
-        ((current_month - prev_month) / nullif(prev_month, 0) * 100)::numeric, 1
+        ((current_month - prev_month) / nullif(prev_month, 0))::numeric, 4
     )                                  as mom_growth_pct
 from pivoted
 order by mom_growth_pct desc nulls last
@@ -190,7 +190,7 @@ order by store_name
     <Column id=store_name      title="Store"             />
     <Column id=current_month_sales title="This Month"   fmt=usd />
     <Column id=prev_month_sales    title="Prev Month"   fmt=usd />
-    <Column id=mom_growth_pct      title="MoM Growth %"         />
+    <Column id=mom_growth_pct      title="MoM Growth %"  fmt=pct1 />
 </DataTable>
 
 ---

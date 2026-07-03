@@ -7,7 +7,7 @@ select
     sum(beverage_orders)  as beverage_orders,
     sum(paired_orders)    as paired_orders,
     round(
-        sum(paired_orders)::numeric / nullif(sum(beverage_orders), 0) * 100, 1
+        sum(paired_orders)::numeric / nullif(sum(beverage_orders), 0), 4
     )                     as attachment_rate_pct
 from attachment_rate_monthly
 ```
@@ -28,7 +28,7 @@ order by year_month
     data={attachment_rate_kpi}
     value=attachment_rate_pct
     title="Food Attach Rate (All Time)"
-    fmt=num1
+    fmt=pct1
 />
 <BigValue
     data={attachment_rate_kpi}
@@ -45,6 +45,7 @@ order by year_month
     data={attachment_rate_trend}
     x=year_month
     y=attachment_rate_pct
+    yFmt=pct1
     title="Food Attachment Rate % — Monthly Trend"
 />
 

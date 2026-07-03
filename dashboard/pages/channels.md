@@ -61,7 +61,7 @@ select
     round(sum(f.order_net_sales)::numeric, 2)                                            as net_sales,
     round(sum(fod.discount_total)::numeric, 2)                                           as discount_total,
     round((sum(fod.discount_total)
-           / nullif(sum(f.order_net_sales + fod.discount_total), 0) * 100)::numeric, 1)  as discount_leakage_pct
+           / nullif(sum(f.order_net_sales + fod.discount_total), 0))::numeric, 4)         as discount_leakage_pct
 from gold.fact_order f
 join gold.fact_order_detail fod
     on f.source_system = fod.source_system and f.order_id = fod.order_id
@@ -95,7 +95,7 @@ order by discount_total desc
     <Column id=destination_name    title="Delivery Channel"       />
     <Column id=net_sales           title="Net Sales"      fmt=usd />
     <Column id=discount_total      title="Discounts"      fmt=usd />
-    <Column id=discount_leakage_pct title="Leakage %"             />
+    <Column id=discount_leakage_pct title="Leakage %"  fmt=pct1 />
 </DataTable>
 
 ---
@@ -151,7 +151,7 @@ select
     sum(f.order_count)                                                                               as total_orders,
     round(
         sum(case when dest.destination_key = 0 then f.order_count else 0 end)::numeric
-        / nullif(sum(f.order_count), 0) * 100, 1
+        / nullif(sum(f.order_count), 0), 4
     )                                                                                                as unknown_pct
 from gold.fact_order f
 join gold.dim_destination dest on f.destination_key = dest.destination_key

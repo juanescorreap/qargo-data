@@ -63,7 +63,7 @@ select
     round(sum(fbe.net_sales) filter (where fbe.employee_key = 0)::numeric, 2)                as unknown_net_sales,
     round(sum(fbe.net_sales)::numeric, 2)                                                    as total_net_sales,
     round((sum(fbe.net_sales) filter (where fbe.employee_key = 0)
-           / nullif(sum(fbe.net_sales), 0) * 100)::numeric, 1)                               as unknown_pct
+           / nullif(sum(fbe.net_sales), 0))::numeric, 4)                                      as unknown_pct
 from gold.fact_by_employee fbe
 join gold.dim_date d on fbe.date_key = d.date_key
 group by d.year, d.month
@@ -77,7 +77,7 @@ select
     round(sum(fbe.net_sales) filter (where fbe.employee_key = 0)::numeric, 2)                as unknown_net_sales,
     round(sum(fbe.net_sales)::numeric, 2)                                                    as total_net_sales,
     round((sum(fbe.net_sales) filter (where fbe.employee_key = 0)
-           / nullif(sum(fbe.net_sales), 0) * 100)::numeric, 1)                               as unknown_pct
+           / nullif(sum(fbe.net_sales), 0))::numeric, 4)                                      as unknown_pct
 from gold.fact_by_employee fbe
 join gold.dim_store s on fbe.store_key = s.store_key
 join gold.dim_date  d on fbe.date_key  = d.date_key
@@ -97,7 +97,7 @@ select
     sum(f.order_count)                                                                  as total_orders,
     round(
         sum(case when f.destination_key = 0 then f.order_count else 0 end)::numeric
-        / nullif(sum(f.order_count), 0) * 100, 1
+        / nullif(sum(f.order_count), 0), 4
     )                                                                                   as unknown_pct
 from gold.fact_order f
 join gold.dim_date d on f.date_key = d.date_key
@@ -125,6 +125,7 @@ select
     data={unknown_employee_by_month}
     x=year_month
     y=unknown_pct
+    yFmt=pct1
     title="% Net Sales with Unknown Employee — Monthly"
 />
 
@@ -132,7 +133,7 @@ select
     <Column id=store_name        title="Store"                    />
     <Column id=unknown_net_sales title="Unknown Net Sales" fmt=usd />
     <Column id=total_net_sales   title="Total Net Sales"   fmt=usd />
-    <Column id=unknown_pct       title="Unknown %"                 />
+    <Column id=unknown_pct       title="Unknown %"        fmt=pct1 />
 </DataTable>
 
 ---
@@ -143,6 +144,7 @@ select
     data={unknown_destination}
     x=year_month
     y=unknown_pct
+    yFmt=pct1
     title="% Orders with Unknown Destination — Monthly"
 />
 

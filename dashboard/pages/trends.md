@@ -42,8 +42,8 @@ select
     net_sales,
     order_count,
     prev_net_sales,
-    round(((net_sales - prev_net_sales) / nullif(prev_net_sales, 0) * 100)::numeric, 1)          as mom_sales_pct,
-    round(((order_count - prev_order_count) / nullif(prev_order_count, 0) * 100)::numeric, 1)    as mom_orders_pct
+    round(((net_sales - prev_net_sales) / nullif(prev_net_sales, 0))::numeric, 4)                as mom_sales_pct,
+    round(((order_count - prev_order_count) / nullif(prev_order_count, 0))::numeric, 4)          as mom_orders_pct
 from with_lag
 order by year, month
 ```
