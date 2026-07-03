@@ -33,33 +33,27 @@ where d.year = extract(year from current_date)::int
 
 ---
 
-```sql last_7_days
+```sql store_net_sales_history
+-- All-time monthly net sales for this store (grouped by month for a readable trend).
 select
-    d.date,
+    date_trunc('month', d.date)::date         as month,
     round(sum(f.order_net_sales)::numeric, 2) as net_sales,
     sum(f.order_count)                        as order_count
 from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where d.date >= (
-    select max(d2.date) - interval '6 days'
-    from gold.dim_date d2
-    join gold.fact_order f2 on d2.date_key = f2.date_key
-    join gold.dim_store  s2 on f2.store_key = s2.store_key
-    where s2.store_name = '${params.store}'
-)
-  and s.store_name = '${params.store}'
-group by d.date
-order by d.date
+where s.store_name = '${params.store}'
+group by date_trunc('month', d.date)
+order by month
 ```
 
-## Last 7 Days
+## Net Sales History — All Time
 
 <LineChart
-    data={last_7_days}
-    x=date
+    data={store_net_sales_history}
+    x=month
     y=net_sales
-    title="Daily Net Sales, L-7D"
+    title="Net Sales History — All Time"
     yFmt=usd
 />
 
