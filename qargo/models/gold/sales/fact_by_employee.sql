@@ -16,11 +16,12 @@
 --                  PAR API numeric IDs (dim_employee excludes numeric-only names) and any
 --                  null/blank staff. Named-employee analysis is valid for PAR CSV + LS2.
 --                  Filter employee_key <> 0 for leaderboards.
---   Join key is upper(trim(employee_name)): dim_employee stores names ALREADY
---                  upper(trim())-normalized, but stg_par2 emits employee_name in raw case.
---                  Matching on the normalized form lifts named coverage from 4 -> 246
---                  distinct employees (a raw-case join silently dropped 242 PAR CSV names
---                  to UNKNOWN). This mirrors dim_employee's own normalization contract.
+--   Join is a plain equality: stg_orders.employee_name is now upper(trim())-normalized at
+--                  the SOURCE (stg_par2 + stg_ls2 both emit the normalized form), matching
+--                  dim_employee's contract. This closes the join-bug root cause — an earlier
+--                  raw-case stg_par2 silently dropped 242 PAR CSV names to UNKNOWN, which the
+--                  fact used to patch by normalizing in the JOIN. Normalization now lives
+--                  upstream so every stg_orders consumer is safe.
 --   No shift/hour grain exists (no time-of-sale column), so Shift Productivity per HOUR is
 --                  not rebuildable — orders/employee/DAY is the finest approximation.
 
@@ -58,7 +59,7 @@ joined as (
     from orders o
     inner join {{ ref('dim_date') }}     d   on o.sale_date                          = d.date
     inner join {{ ref('dim_store') }}    s   on o.store_name                         = s.store_name
-    left  join {{ ref('dim_employee') }} emp on upper(trim(coalesce(o.employee_name, 'UNKNOWN'))) = emp.employee_name
+    left  join {{ ref('dim_employee') }} emp on coalesce(o.employee_name, 'UNKNOWN') = emp.employee_name
 )
 
 select
