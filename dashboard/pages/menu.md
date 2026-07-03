@@ -145,12 +145,15 @@ limit 30
 > - Variance between expected and actual inventory counts
 > - Waste cost by product category
 
-```sql waste_placeholder
--- C2 cutover: product/category grain -> fact_sale_item (items sold, net of returns)
+```sql category_volume
+-- C2 cutover: product/category grain -> fact_sale_item (items sold, net of returns).
+-- Most-recent-month category volume: qty, net sales, and each category's share of net
+-- sales. Serves as the inventory-integration hook until the real waste system lands.
 select
-    p.revenue_center_name                           as category,
-    round(sum(f.item_net_sales)::numeric, 2)        as net_sales,
-    sum(f.qty)                                      as items_processed
+    p.revenue_center_name                                                             as revenue_center,
+    sum(f.qty)                                                                         as total_qty,
+    round(sum(f.item_net_sales)::numeric, 2)                                           as net_sales,
+    round((sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over () * 100)::numeric, 1) as pct_of_total
 from gold.fact_sale_item f
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
@@ -163,8 +166,9 @@ group by p.revenue_center_name
 order by net_sales desc
 ```
 
-<DataTable data={waste_placeholder} title="Category Volume (Inventory Integration Hook)">
-    <Column id=category        title="Category"           />
-    <Column id=net_sales       title="Net Sales" fmt=usd  />
-    <Column id=items_processed title="Items Processed"    />
+<DataTable data={category_volume} title="Category Volume — Most Recent Month (Inventory Integration Hook)">
+    <Column id=revenue_center title="Category"           />
+    <Column id=total_qty      title="Total Qty"          />
+    <Column id=net_sales      title="Net Sales" fmt=usd  />
+    <Column id=pct_of_total   title="% of Total"         />
 </DataTable>

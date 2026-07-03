@@ -138,6 +138,47 @@ order by d.date
 
 ---
 
+```sql net_sales_ytd_daily
+-- Cumulative (running) net sales for the year-to-date, anchored to the latest year WITH
+-- data (data ends 2026-06-30), reacting to the store filter.
+with daily as (
+    select
+        d.date,
+        sum(f.order_net_sales) as net_sales
+    from gold.fact_order f
+    join gold.dim_date  d on f.date_key  = d.date_key
+    join gold.dim_store s on f.store_key = s.store_key
+    where d.year = (
+        select extract(year from max(d2.date))::int
+        from gold.dim_date d2 join gold.fact_order f2 on d2.date_key = f2.date_key
+      )
+      and (
+          '${inputs.store_filter}' = 'All Stores'
+          or '${inputs.store_filter}' = ''
+          or s.store_name = '${inputs.store_filter}'
+      )
+    group by d.date
+)
+select
+    date,
+    round(net_sales::numeric, 2)                                  as net_sales,
+    round((sum(net_sales) over (order by date))::numeric, 2)      as cumulative_net_sales
+from daily
+order by date
+```
+
+## Cumulative Net Sales — YTD
+
+<LineChart
+    data={net_sales_ytd_daily}
+    x=date
+    y=cumulative_net_sales
+    title="Cumulative Net Sales (Year to Date)"
+    yFmt=usd
+/>
+
+---
+
 ```sql store_leaderboard_mom
 with anchor as (
     -- Latest month WITH data (data ends 2026-06-30) — replaces current_date so the
