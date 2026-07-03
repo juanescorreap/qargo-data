@@ -195,6 +195,50 @@ order by store_name
 
 ---
 
+## Net Sales by Store — All Periods
+
+```sql store_month_options
+-- distinct store list for the dropdown (all stores, alphabetical)
+select store_name from gold.dim_store order by store_name
+```
+
+<Dropdown
+    data={store_month_options}
+    name=store_filter_2
+    value=store_name
+    title="Store"
+    defaultValue="TAMPA, FL"
+/>
+
+```sql store_monthly_sales
+-- Net sales per month for the selected store (all available months).
+select
+    s.store_name,
+    d.year || '-' || lpad(d.month::text, 2, '0')   as year_month,
+    round(sum(f.order_net_sales)::numeric, 2)       as net_sales
+from gold.fact_order f
+join gold.dim_date  d on f.date_key  = d.date_key
+join gold.dim_store s on f.store_key = s.store_key
+where s.store_name = '${inputs.store_filter_2.value}'
+group by s.store_name, d.year, d.month
+order by d.year, d.month
+```
+
+<LineChart
+    data={store_monthly_sales}
+    x=year_month
+    y=net_sales
+    title="Monthly Net Sales — {inputs.store_filter_2.value}"
+    yFmt=usd
+/>
+
+<DataTable data={store_monthly_sales} rows=24>
+    <Column id=year_month title="Month"                />
+    <Column id=net_sales  title="Net Sales"   fmt=usd  />
+</DataTable>
+
+---
+
 ```sql labor_efficiency
 -- Rehabilitated via fact_by_employee (per employee/store/day grain). Score = named
 -- net sales / active named employees. employee_key = 0 (UNKNOWN: PAR API numeric IDs
