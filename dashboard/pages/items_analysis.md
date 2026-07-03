@@ -24,24 +24,6 @@ order by sort_order
     defaultValue="All Stores"
 />
 
-```sql date_span
--- Bounds for the DateRange picker. Without data/dates the input never initializes,
--- so ${inputs.date_range.start/end} stay undefined and every query on the page errors
--- (blank page). Feed it the min/max sale date so the range defaults to the data span.
-select min(d.date) as sale_date
-from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
-union all
-select max(d.date)
-from gold.fact_sale_item f join gold.dim_date d on f.date_key = d.date_key
-```
-
-<DateRange
-    name="date_range"
-    data={date_span}
-    dates=sale_date
-    title="Date Range"
-/>
-
 <Dropdown
     name="size_filter"
     data={size_options}
@@ -60,10 +42,8 @@ select
     round(sum(f.item_net_sales)::numeric, 2) as net_sales,
     sum(f.qty)                               as items_sold
 from gold.fact_sale_item f
-join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
-where d.date between '${inputs.date_range.start}'::date and '${inputs.date_range.end}'::date
-  and (
+where (
       '${inputs.store}' = 'All Stores'
       or '${inputs.store}' = ''
       or s.store_name = '${inputs.store}'
@@ -91,11 +71,9 @@ with filtered as (
         sum(f.item_net_sales) as net_sales,
         sum(f.qty)            as items_sold
     from gold.fact_sale_item f
-    join gold.dim_date    d on f.date_key    = d.date_key
     join gold.dim_store   s on f.store_key   = s.store_key
     join gold.dim_product p on f.product_key = p.product_key
-    where d.date between '${inputs.date_range.start}'::date and '${inputs.date_range.end}'::date
-      and p.product_name <> 'UNKNOWN'
+    where p.product_name <> 'UNKNOWN'
       and (
           '${inputs.store}' = 'All Stores'
           or '${inputs.store}' = ''
