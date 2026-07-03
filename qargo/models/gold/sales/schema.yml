@@ -42,3 +42,27 @@ models:
           backlog. Can be negative at row level; do not apply is_non_negative.
         tests:
           - not_null
+
+  - name: fact_order_detail
+    description: >
+      One row per real order (grain = source_system + order_id), SAME grain as fact_order
+      for a clean 1:1 JOIN. Carries the per-order money extras (discount_total, tax_amount,
+      tip_amount) that fact_order/fact_sale_item omit; restores Delivery Leakage and
+      similar metrics dropped with fact_sales. Limitations: tip_amount is always 0 (POS
+      feeds expose no tip); LS2 orders resolve to destination_key = 0 (LS2 has no
+      destination).
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+      - name: store_key
+        tests:
+          - not_null
+      - name: source_system
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: tip_amount
+        description: "Always 0 — no tip data in the current POS integration. Kept for forward-compatibility."
