@@ -51,11 +51,12 @@ order by year_month
 ---
 
 ```sql retail_evolution
+-- Migrated off deprecated fact_sales to fact_sale_item (product-grain net sales).
 select
     d.year || '-' || lpad(d.month::text, 2, '0')                   as year_month,
-    round(sum(f.net_sales)::numeric, 2)                             as net_sales,
-    sum(f.order_count)                                              as order_count
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2)                        as net_sales,
+    sum(f.qty)                                                      as items_sold
+from gold.fact_sale_item f
 join gold.dim_date    d on f.date_key    = d.date_key
 join gold.dim_product p on f.product_key = p.product_key
 where p.revenue_center_name = 'Retail'
@@ -65,11 +66,12 @@ order by d.year, d.month
 ```
 
 ```sql product_mix_by_category
+-- Migrated off deprecated fact_sales to fact_sale_item (product-grain net sales).
 select
     d.year || '-' || lpad(d.month::text, 2, '0')                   as year_month,
     p.revenue_center_name,
-    round(sum(f.net_sales)::numeric, 2)                             as net_sales
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2)                        as net_sales
+from gold.fact_sale_item f
 join gold.dim_date    d on f.date_key    = d.date_key
 join gold.dim_product p on f.product_key = p.product_key
 where d.date >= '2024-07-01'::date

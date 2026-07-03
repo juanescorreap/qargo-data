@@ -52,36 +52,15 @@ order by net_sales desc
 
 ---
 
-```sql delivery_leakage
-select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                                        as year_month,
-    round(sum(f.net_sales)::numeric, 2)                                                                  as net_sales,
-    round(sum(f.discount_total)::numeric, 2)                                                             as discount_total,
-    round((sum(f.discount_total) / nullif(sum(f.net_sales + f.discount_total), 0) * 100)::numeric, 1)   as discount_pct
-from gold.fact_sales f
-join gold.dim_destination dest on f.destination_key = dest.destination_key
-join gold.dim_date         d   on f.date_key        = d.date_key
-where dest.channel = 'Delivery'
-group by d.year, d.month
-order by d.year, d.month
-```
-
 ## Delivery Leakage — Net Sales vs Discounts
 
-<BarChart
-    data={delivery_leakage}
-    x=year_month
-    y={["net_sales","discount_total"]}
-    title="Delivery: Net Sales vs Discount Given"
-    yFmt=usd
-/>
+<!--
+TODO: Delivery Leakage needs discount_total, which lived only in gold.fact_sales
+(dropped in the C5 space reduction). Restore via a fact_order_detail model carrying
+discount_total/tax_amount/tip_amount (next epic). Temporarily disabled.
+-->
 
-<LineChart
-    data={delivery_leakage}
-    x=year_month
-    y=discount_pct
-    title="Delivery Discount % Over Time"
-/>
+_Esta métrica estará disponible próximamente._
 
 ---
 

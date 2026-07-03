@@ -15,9 +15,10 @@ where date_trunc('month', d.date) = date_trunc('month', current_date)
 ```
 
 ```sql store_kpi_ytd
+-- Migrated off deprecated fact_sales to fact_order (order-level net sales).
 select
-    round(sum(f.net_sales)::numeric, 2) as net_sales_ytd
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2) as net_sales_ytd
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.year = extract(year from current_date)::int
@@ -104,11 +105,12 @@ order by d.year, d.month, d.day_of_week
 ---
 
 ```sql category_mix
+-- Migrated off deprecated fact_sales to fact_sale_item (product-grain net sales).
 select
     p.revenue_center_name,
-    round(sum(f.net_sales)::numeric, 2)                                                       as net_sales,
-    round(sum(f.net_sales) / sum(sum(f.net_sales)) over () * 100, 1)                          as pct_of_total
-from gold.fact_sales f
+    round(sum(f.item_net_sales)::numeric, 2)                                                  as net_sales,
+    round(sum(f.item_net_sales) / sum(sum(f.item_net_sales)) over () * 100, 1)                as pct_of_total
+from gold.fact_sale_item f
 join gold.dim_store   s on f.store_key   = s.store_key
 join gold.dim_product p on f.product_key = p.product_key
 join gold.dim_date    d on f.date_key    = d.date_key
@@ -175,29 +177,12 @@ order by net_sales desc
 
 ---
 
-```sql top_employees_store
-select
-    e.employee_name,
-    round(sum(f.net_sales)::numeric, 2)  as net_sales,
-    sum(f.order_count)                   as order_count,
-    round(avg(f.avg_ticket)::numeric, 2) as avg_ticket
-from gold.fact_sales_by_employee f
-join gold.dim_store    s on f.store_key    = s.store_key
-join gold.dim_employee e on f.employee_key = e.employee_key
-join gold.dim_date     d on f.date_key     = d.date_key
-where date_trunc('month', d.date) = date_trunc('month', current_date)
-  and s.store_name    = '${params.store}'
-  and e.employee_name <> 'UNKNOWN'
-group by e.employee_name
-order by net_sales desc
-limit 15
-```
-
 ## Top Employees — This Month
 
-<DataTable data={top_employees_store}>
-    <Column id=employee_name title="Employee"           />
-    <Column id=net_sales     title="Net Sales" fmt=usd  />
-    <Column id=order_count   title="Orders"             />
-    <Column id=avg_ticket    title="Avg Ticket" fmt=usd />
-</DataTable>
+<!--
+TODO: Top Employees needs the per-employee grain from gold.fact_sales_by_employee,
+dropped in the C5 space reduction. Restore via a fact_by_employee model (next epic).
+Temporarily disabled.
+-->
+
+_Esta métrica estará disponible próximamente._

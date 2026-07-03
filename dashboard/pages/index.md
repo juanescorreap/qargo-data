@@ -97,16 +97,17 @@ where d.year = extract(year from current_date)::int
 ---
 
 ```sql daily_last_90
+-- Migrated off deprecated fact_sales to fact_order (order-level net sales).
 select
     d.date,
-    sum(f.net_sales) as net_sales
-from gold.fact_sales f
+    sum(f.order_net_sales) as net_sales
+from gold.fact_order f
 join gold.dim_date  d on f.date_key  = d.date_key
 join gold.dim_store s on f.store_key = s.store_key
 where d.date >= (
     select max(d2.date) - interval '89 days'
     from gold.dim_date d2
-    join gold.fact_sales f2 on d2.date_key = f2.date_key
+    join gold.fact_order f2 on d2.date_key = f2.date_key
 )
   and (
       '${inputs.store_filter}' = 'All Stores'
@@ -134,8 +135,8 @@ with monthly as (
     select
         s.store_name,
         date_trunc('month', d.date) as month_start,
-        sum(f.net_sales) as net_sales
-    from gold.fact_sales f
+        sum(f.order_net_sales) as net_sales
+    from gold.fact_order f
     join gold.dim_date  d on f.date_key  = d.date_key
     join gold.dim_store s on f.store_key = s.store_key
     where date_trunc('month', d.date) >= date_trunc('month', current_date) - interval '1 month'
@@ -184,46 +185,15 @@ order by store_name
 
 ---
 
-```sql labor_efficiency
-with employee_counts as (
-    select
-        s.store_name,
-        count(distinct e.employee_key) filter (where e.employee_name <> 'UNKNOWN') as active_employees
-    from gold.fact_sales_by_employee f
-    join gold.dim_store    s on f.store_key    = s.store_key
-    join gold.dim_employee e on f.employee_key = e.employee_key
-    join gold.dim_date     d on f.date_key     = d.date_key
-    where date_trunc('month', d.date) = date_trunc('month', current_date)
-    group by s.store_name
-),
-store_sales as (
-    select
-        s.store_name,
-        sum(f.net_sales) as net_sales
-    from gold.fact_sales f
-    join gold.dim_store s on f.store_key = s.store_key
-    join gold.dim_date  d on f.date_key  = d.date_key
-    where date_trunc('month', d.date) = date_trunc('month', current_date)
-    group by s.store_name
-)
-select
-    ss.store_name,
-    round(ss.net_sales::numeric, 2)                                                as net_sales,
-    ec.active_employees,
-    round((ss.net_sales / nullif(ec.active_employees, 0))::numeric, 2)             as sales_per_employee
-from store_sales ss
-join employee_counts ec on ss.store_name = ec.store_name
-order by sales_per_employee desc
-```
-
 ## Labor Efficiency — Current Month
 
-<DataTable data={labor_efficiency} rows=20>
-    <Column id=store_name         title="Store"               />
-    <Column id=net_sales          title="Net Sales"   fmt=usd />
-    <Column id=active_employees   title="Active Staff"        />
-    <Column id=sales_per_employee title="Sales / Employee" fmt=usd />
-</DataTable>
+<!--
+TODO: Labor Efficiency (net sales per active employee) needs the per-employee grain
+from gold.fact_sales_by_employee, dropped in the C5 space reduction. Restore via a
+fact_order_detail / fact_by_employee model (next epic). Temporarily disabled.
+-->
+
+_Esta métrica estará disponible próximamente._
 
 ---
 
@@ -231,9 +201,9 @@ order by sales_per_employee desc
 select
     s.store_name,
     s.royalty_rate,
-    round(sum(f.net_sales)::numeric, 2)                            as net_sales,
-    round(sum(f.net_sales * s.royalty_rate)::numeric, 2)           as royalty_due
-from gold.fact_sales f
+    round(sum(f.order_net_sales)::numeric, 2)                      as net_sales,
+    round(sum(f.order_net_sales * s.royalty_rate)::numeric, 2)     as royalty_due
+from gold.fact_order f
 join gold.dim_store s on f.store_key = s.store_key
 join gold.dim_date  d on f.date_key  = d.date_key
 where date_trunc('month', d.date) = date_trunc('month', current_date)

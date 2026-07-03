@@ -54,21 +54,12 @@ order by year_month, source
 
 ---
 
-```sql unknown_employees
-select
-    d.year || '-' || lpad(d.month::text, 2, '0')                                      as year_month,
-    sum(case when e.employee_name = 'UNKNOWN' then f.order_count else 0 end)           as unknown_employee_orders,
-    sum(f.order_count)                                                                  as total_orders,
-    round(
-        sum(case when e.employee_name = 'UNKNOWN' then f.order_count else 0 end)::numeric
-        / nullif(sum(f.order_count), 0) * 100, 1
-    )                                                                                   as unknown_pct
-from gold.fact_sales_by_employee f
-join gold.dim_employee e on f.employee_key = e.employee_key
-join gold.dim_date     d on f.date_key     = d.date_key
-group by d.year, d.month
-order by d.year, d.month
-```
+<!--
+TODO: "UNKNOWN employee" tracking needs per-employee grain from
+gold.fact_sales_by_employee, dropped in the C5 space reduction. Restore via a
+fact_by_employee model (next epic). Temporarily disabled. Unknown-destination
+tracking below still works (fact_order carries destination_key).
+-->
 
 ```sql unknown_destination
 select
@@ -96,12 +87,7 @@ select
 <BigValue data={unknown_totals} value=unknown_employee_rows title="UNKNOWN Employee Rows in dim_employee" />
 <BigValue data={unknown_totals} value=unknown_dest_orders   title="Orders with Unknown Destination (all time)" />
 
-<LineChart
-    data={unknown_employees}
-    x=year_month
-    y=unknown_pct
-    title="% Orders with UNKNOWN Employee — Monthly"
-/>
+_% Orders with UNKNOWN Employee estará disponible próximamente (requiere `fact_by_employee`)._
 
 <LineChart
     data={unknown_destination}
@@ -110,7 +96,6 @@ select
     title="% Orders with Unknown Destination — Monthly"
 />
 
-<DataTable data={unknown_employees}    title="Unknown Employee by Month"    />
 <DataTable data={unknown_destination}  title="Unknown Destination by Month" />
 
 ---
