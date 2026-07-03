@@ -146,6 +146,12 @@ jobs:
         env:
           SUPABASE_SSL_CA: ${{ secrets.SUPABASE_SSL_CA }}
 
+      # Defensive: guarantee a clean page/query compile even if a stale generated
+      # dashboard/.evidence/template (or .svelte-kit) is ever present. Runners are
+      # ephemeral today so this is belt-and-braces, not a fix for a known CI cache.
+      - name: Clear Evidence build cache
+        run: rm -rf dashboard/.evidence/template dashboard/.svelte-kit
+
       - name: Generate Evidence sources
         run: npm run sources --prefix dashboard
 
